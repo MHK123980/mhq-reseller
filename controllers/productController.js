@@ -27,7 +27,7 @@ const create = async (req, res) => {
     const populatedProduct = await Product.findById(product._id).populate('category', 'name');
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'product:new', populatedProduct);
+    if (pusher) await pusher.trigger('mhq-reseller', 'product:new', populatedProduct);
     
     res.status(201).json({ success: true, product: populatedProduct });
   } catch (error) {
@@ -41,7 +41,7 @@ const update = async (req, res) => {
     if (!product) return res.status(404).json({ success: false, message: 'Not found' });
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'product:updated', product);
+    if (pusher) await pusher.trigger('mhq-reseller', 'product:updated', product);
     
     res.json({ success: true, product });
   } catch (error) {
@@ -55,7 +55,7 @@ const remove = async (req, res) => {
     if (!product) return res.status(404).json({ success: false, message: 'Not found' });
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'product:deleted', { id: req.params.id });
+    if (pusher) await pusher.trigger('mhq-reseller', 'product:deleted', { id: req.params.id });
     
     res.json({ success: true, message: 'Product removed' });
   } catch (error) {
@@ -73,7 +73,7 @@ const toggleFeatured = async (req, res) => {
     await product.populate('category', 'name');
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'product:updated', product);
+    if (pusher) await pusher.trigger('mhq-reseller', 'product:updated', product);
     
     res.json({ success: true, product });
   } catch (error) {
@@ -91,7 +91,7 @@ const toggleOutOfStock = async (req, res) => {
     await product.populate('category', 'name');
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'product:updated', product);
+    if (pusher) await pusher.trigger('mhq-reseller', 'product:updated', product);
     
     res.json({ success: true, product });
   } catch (error) {

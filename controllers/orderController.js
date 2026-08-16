@@ -32,7 +32,7 @@ const create = async (req, res) => {
     const populatedOrder = await Order.findById(order._id).populate('products.product', 'name images price');
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'order:new', populatedOrder);
+    if (pusher) await pusher.trigger('mhq-reseller', 'order:new', populatedOrder);
     
     res.status(201).json({ success: true, order: populatedOrder });
   } catch (error) {
@@ -47,7 +47,7 @@ const updateStatus = async (req, res) => {
     if (!order) return res.status(404).json({ success: false, message: 'Not found' });
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'order:updated', order);
+    if (pusher) await pusher.trigger('mhq-reseller', 'order:updated', order);
     
     res.json({ success: true, order });
   } catch (error) {
@@ -61,7 +61,7 @@ const remove = async (req, res) => {
     if (!order) return res.status(404).json({ success: false, message: 'Not found' });
     
     const pusher = req.app.get('pusher');
-    if (pusher) pusher.trigger('mhq-reseller', 'order:deleted', { id: req.params.id });
+    if (pusher) await pusher.trigger('mhq-reseller', 'order:deleted', { id: req.params.id });
     
     res.json({ success: true, message: 'Order removed' });
   } catch (error) {
