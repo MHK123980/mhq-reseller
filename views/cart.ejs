@@ -205,7 +205,11 @@ async function placeOrder(e) {
     email: form.email.value,
   };
 
-  const products = cart.map(i => ({ productId: i.id, quantity: i.quantity }));
+  const products = cart.map(i => ({
+    product: i.id,
+    quantity: i.quantity,
+    priceAtPurchase: i.price
+  }));
 
   try {
     const res = await fetch('/api/orders', {
