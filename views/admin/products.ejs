@@ -2,61 +2,19 @@
   <div class="flex items-center justify-between mb-8">
     <div>
       <h1 class="text-3xl font-bold text-white mb-1">Products</h1>
-      <p class="text-zinc-400"><%= products.length %> products total</p>
+      <p class="text-zinc-400 text-sm" id="products-count">Loading...</p>
     </div>
     <button onclick="openModal('add')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors">
       + Add Product
     </button>
   </div>
 
-  <% if(products.length === 0) { %>
-    <div class="text-center py-20 text-zinc-400">No products yet. Add your first product!</div>
-  <% } else { %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="admin-products-grid">
-      <% products.forEach(p => { %>
-      <div class="bg-zinc-800/60 border border-zinc-700 rounded-2xl overflow-hidden product-card" id="product-card-<%= p._id %>">
-        <div class="h-44 bg-zinc-900 relative">
-          <% if (p.images && p.images.length > 0) { %>
-          <img src="<%= p.images[0] %>" class="w-full h-full object-cover" loading="lazy" />
-          <% } else { %>
-          <div class="w-full h-full flex items-center justify-center text-zinc-600">No Image</div>
-          <% } %>
-          <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            <% if (p.isFeatured) { %>
-              <span class="bg-amber-500 text-black text-[10px] font-extrabold px-2 py-0.5 rounded shadow">★ FEATURED</span>
-            <% } %>
-            <% if (p.isLowInStock) { %>
-              <span class="bg-yellow-500 text-black text-[10px] font-extrabold px-2 py-0.5 rounded shadow">⚠ LOW IN STOCK</span>
-            <% } %>
-            <% if (p.isOutOfStock) { %>
-              <span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow">✖ OUT OF STOCK</span>
-            <% } %>
-          </div>
-        </div>
-        <div class="p-4">
-          <h3 class="text-white font-bold text-lg mb-1 truncate"><%= p.name %></h3>
-          <p class="text-zinc-400 text-sm mb-1"><%= p.category ? p.category.name : 'Uncategorized' %></p>
-          <p class="text-amber-400 font-bold">Rs <%= p.price.toLocaleString() %></p>
-          
-          <div class="flex flex-col gap-2 mt-4">
-            <div class="flex gap-2">
-              <button onclick="toggleFeatured('<%= p._id %>')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors <%= p.isFeatured ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/40' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600' %>">
-                <%= p.isFeatured ? '★ Featured' : '☆ Set Featured' %>
-              </button>
-              <button onclick="toggleStock('<%= p._id %>')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors <%= p.isOutOfStock ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/40' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600' %>">
-                <%= p.isOutOfStock ? 'In Stock' : 'Out of Stock' %>
-              </button>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="openModal('edit', '<%= Buffer.from(JSON.stringify(p)).toString('base64') %>')" class="flex-1 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded-lg text-xs font-bold transition-colors">Edit</button>
-              <button onclick="deleteProduct('<%= p._id %>')" class="flex-1 py-2 bg-red-600/20 text-red-400 hover:bg-red-600/30 rounded-lg text-xs font-bold transition-colors">Delete</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <% }) %>
+  <!-- Products grid will be rendered by JS -->
+  <div id="admin-products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div class="col-span-full flex justify-center py-20">
+      <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
-  <% } %>
+  </div>
 </div>
 
 <!-- Modal -->
@@ -107,41 +65,16 @@
 
       <!-- Toggles -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <% const toggles = [['p-has-discount','tgl-bg-discount','tgl-dot-discount','Has Discount'],['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery','Free Delivery'],['p-featured','tgl-bg-featured','tgl-dot-featured','Featured'],['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock','Low In Stock'],['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock','Out of Stock']] %>
+        <% toggles.forEach(([inputId, bgId, dotId, label]) => { %>
         <label class="flex items-center gap-2 cursor-pointer">
-          <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="tgl-bg-discount" onclick="toggleSwitch('p-has-discount', 'tgl-bg-discount', 'tgl-dot-discount')">
-            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all" id="tgl-dot-discount"></div>
-            <input type="checkbox" id="p-has-discount" class="hidden" />
+          <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="<%= bgId %>" onclick="toggleSwitch('<%= inputId %>','<%= bgId %>','<%= dotId %>')">
+            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all" id="<%= dotId %>"></div>
+            <input type="checkbox" id="<%= inputId %>" class="hidden" />
           </div>
-          <span class="text-sm text-zinc-300">Has Discount</span>
+          <span class="text-sm text-zinc-300"><%= label %></span>
         </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="tgl-bg-free-delivery" onclick="toggleSwitch('p-free-delivery', 'tgl-bg-free-delivery', 'tgl-dot-free-delivery')">
-            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all" id="tgl-dot-free-delivery"></div>
-            <input type="checkbox" id="p-free-delivery" class="hidden" />
-          </div>
-          <span class="text-sm text-zinc-300">Free Delivery</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="tgl-bg-featured" onclick="toggleSwitch('p-featured', 'tgl-bg-featured', 'tgl-dot-featured')">
-            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all" id="tgl-dot-featured"></div>
-            <input type="checkbox" id="p-featured" class="hidden" />
-          </div>
-          <span class="text-sm text-zinc-300">Featured</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="tgl-bg-low-stock" onclick="toggleSwitch('p-low-stock', 'tgl-bg-low-stock', 'tgl-dot-low-stock')">
-            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all" id="tgl-dot-low-stock"></div>
-            <input type="checkbox" id="p-low-stock" class="hidden" />
-          </div>
-          <span class="text-sm text-zinc-300">Low In Stock</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="tgl-bg-out-stock" onclick="toggleSwitch('p-out-stock', 'tgl-bg-out-stock', 'tgl-dot-out-stock')">
-            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all" id="tgl-dot-out-stock"></div>
-            <input type="checkbox" id="p-out-stock" class="hidden" />
-          </div>
-          <span class="text-sm text-zinc-300">Out of Stock</span>
-        </label>
+        <% }) %>
       </div>
 
       <!-- Image Upload (Supports PDF & ZIP) -->
@@ -155,12 +88,8 @@
       </div>
 
       <div class="flex gap-3 mt-6">
-        <button type="button" onclick="closeModal()" class="flex-1 py-3 border border-zinc-700 text-zinc-400 hover:text-white rounded-xl transition-colors">
-          Cancel
-        </button>
-        <button type="submit" id="save-btn" class="flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50">
-          Save Product
-        </button>
+        <button type="button" onclick="closeModal()" class="flex-1 py-3 border border-zinc-700 text-zinc-400 hover:text-white rounded-xl transition-colors">Cancel</button>
+        <button type="submit" id="save-btn" class="flex-1 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50">Save Product</button>
       </div>
     </form>
   </div>
@@ -169,15 +98,72 @@
 <!-- Libraries for ZIP and PDF processing -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-</script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 
 <script>
 const IMGBB_KEY = "d26bb3aafef1e75c324e7ce3072e3b47";
 let uploadedImages = [];
-let isUploading = false;
+let allAdminProducts = [];
 
+// ---- Render grid from JS ----
+function renderProductCard(p) {
+  const catName = p.category ? p.category.name : 'Uncategorized';
+  const imgHtml = p.images && p.images[0]
+    ? `<img src="${p.images[0]}" class="w-full h-full object-cover" loading="lazy"/>`
+    : `<div class="w-full h-full flex items-center justify-center text-zinc-600">No Image</div>`;
+  const badges = [
+    p.isFeatured ? `<span class="bg-amber-500 text-black text-[10px] font-extrabold px-2 py-0.5 rounded shadow">★ FEATURED</span>` : '',
+    p.isLowInStock ? `<span class="bg-yellow-500 text-black text-[10px] font-extrabold px-2 py-0.5 rounded shadow">⚠ LOW IN STOCK</span>` : '',
+    p.isOutOfStock ? `<span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow">✖ OUT OF STOCK</span>` : '',
+  ].join('');
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  return `
+    <div class="bg-zinc-800/60 border border-zinc-700 rounded-2xl overflow-hidden product-card" id="product-card-${p._id}" data-id="${p._id}">
+      <div class="h-44 bg-zinc-900 relative">
+        ${imgHtml}
+        <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">${badges}</div>
+      </div>
+      <div class="p-4">
+        <h3 class="text-white font-bold text-lg mb-1 truncate">${p.name}</h3>
+        <p class="text-zinc-400 text-sm mb-1">${catName}</p>
+        <p class="text-amber-400 font-bold">Rs ${p.price ? p.price.toLocaleString() : 0}</p>
+        <div class="flex flex-col gap-2 mt-4">
+          <div class="flex gap-2">
+            <button onclick="toggleFeatured('${p._id}')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${p.isFeatured ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/40' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}">
+              ${p.isFeatured ? '★ Featured' : '☆ Set Featured'}
+            </button>
+            <button onclick="toggleStock('${p._id}')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${p.isOutOfStock ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/40' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}">
+              ${p.isOutOfStock ? 'In Stock' : 'Out of Stock'}
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openModal('edit','${b64}')" class="flex-1 py-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded-lg text-xs font-bold transition-colors">Edit</button>
+            <button onclick="deleteProduct('${p._id}')" class="flex-1 py-2 bg-red-600/20 text-red-400 hover:bg-red-600/30 rounded-lg text-xs font-bold transition-colors">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch('/api/products');
+    allAdminProducts = await res.json();
+    const grid = document.getElementById('admin-products-grid');
+    const countEl = document.getElementById('products-count');
+    countEl.textContent = allAdminProducts.length + ' products total';
+    if (allAdminProducts.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No products yet. Add your first product!</div>';
+    } else {
+      grid.innerHTML = allAdminProducts.map(renderProductCard).join('');
+    }
+  } catch(e) { console.error('Failed to load products', e); }
+}
+
+// Load on page open
+loadProducts();
+
+// ---- Toggle switches ----
 function toggleSwitch(inputId, bgId, dotId) {
   const input = document.getElementById(inputId);
   input.checked = !input.checked;
@@ -189,10 +175,10 @@ function updateSwitchUI(inputId, bgId, dotId) {
   const dot = document.getElementById(dotId);
   if (input.checked) {
     bg.classList.remove('bg-zinc-700'); bg.classList.add('bg-amber-500');
-    dot.classList.remove('left-0.5'); dot.classList.add('left-6');
+    dot.style.left = '1.5rem';
   } else {
     bg.classList.add('bg-zinc-700'); bg.classList.remove('bg-amber-500');
-    dot.classList.add('left-0.5'); dot.classList.remove('left-6');
+    dot.style.left = '0.125rem';
   }
 }
 function setSwitch(inputId, bgId, dotId, value) {
@@ -202,25 +188,16 @@ function setSwitch(inputId, bgId, dotId, value) {
 
 function openModal(mode, b64Data = null) {
   const modal = document.getElementById('product-modal');
-  const title = document.getElementById('modal-title');
-  const form = document.getElementById('product-form');
-  const btn = document.getElementById('save-btn');
-  
-  form.reset();
+  document.getElementById('product-form').reset();
   uploadedImages = [];
   renderPreviews();
-
-  // Reset toggles
-  setSwitch('p-has-discount', 'tgl-bg-discount', 'tgl-dot-discount', false);
-  setSwitch('p-free-delivery', 'tgl-bg-free-delivery', 'tgl-dot-free-delivery', false);
-  setSwitch('p-featured', 'tgl-bg-featured', 'tgl-dot-featured', false);
-  setSwitch('p-low-stock', 'tgl-bg-low-stock', 'tgl-dot-low-stock', false);
-  setSwitch('p-out-stock', 'tgl-bg-out-stock', 'tgl-dot-out-stock', false);
+  const switches = [['p-has-discount','tgl-bg-discount','tgl-dot-discount'],['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery'],['p-featured','tgl-bg-featured','tgl-dot-featured'],['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock'],['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock']];
+  switches.forEach(([a,b,c]) => setSwitch(a,b,c,false));
 
   if (mode === 'edit' && b64Data) {
-    title.textContent = 'Edit Product';
-    btn.textContent = 'Update Product';
-    const p = JSON.parse(atob(b64Data));
+    document.getElementById('modal-title').textContent = 'Edit Product';
+    document.getElementById('save-btn').textContent = 'Update Product';
+    const p = JSON.parse(decodeURIComponent(escape(atob(b64Data))));
     document.getElementById('p-id').value = p._id;
     document.getElementById('p-name').value = p.name;
     document.getElementById('p-desc').value = p.description;
@@ -228,20 +205,15 @@ function openModal(mode, b64Data = null) {
     document.getElementById('p-delivery').value = p.deliveryCharges || 0;
     document.getElementById('p-discount-percent').value = p.discountPercent || 0;
     if (p.category) document.getElementById('p-cat').value = p.category._id || p.category;
-    
-    setSwitch('p-has-discount', 'tgl-bg-discount', 'tgl-dot-discount', p.hasDiscount);
-    setSwitch('p-free-delivery', 'tgl-bg-free-delivery', 'tgl-dot-free-delivery', p.isFreeDelivery);
-    setSwitch('p-featured', 'tgl-bg-featured', 'tgl-dot-featured', p.isFeatured);
-    setSwitch('p-low-stock', 'tgl-bg-low-stock', 'tgl-dot-low-stock', p.isLowInStock);
-    setSwitch('p-out-stock', 'tgl-bg-out-stock', 'tgl-dot-out-stock', p.isOutOfStock);
-
-    if (p.images) {
-      uploadedImages = [...p.images];
-      renderPreviews();
-    }
+    setSwitch('p-has-discount','tgl-bg-discount','tgl-dot-discount', p.hasDiscount);
+    setSwitch('p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery', p.isFreeDelivery);
+    setSwitch('p-featured','tgl-bg-featured','tgl-dot-featured', p.isFeatured);
+    setSwitch('p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock', p.isLowInStock);
+    setSwitch('p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock', p.isOutOfStock);
+    if (p.images) { uploadedImages = [...p.images]; renderPreviews(); }
   } else {
-    title.textContent = 'Add New Product';
-    btn.textContent = 'Add Product';
+    document.getElementById('modal-title').textContent = 'Add New Product';
+    document.getElementById('save-btn').textContent = 'Add Product';
     document.getElementById('p-id').value = '';
   }
   modal.classList.remove('hidden');
@@ -251,138 +223,88 @@ function closeModal() {
   document.getElementById('product-modal').classList.add('hidden');
 }
 
-// ----------------- FILE EXTRACTION AND UPLOAD LOGIC ----------------- //
-
+// ---- ImgBB + ZIP + PDF ----
 async function uploadToImgBB(fileBlob, fileName) {
   const formData = new FormData();
   formData.append("image", fileBlob, fileName);
-  try {
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-      method: "POST", body: formData
-    });
-    const data = await res.json();
-    if(data.data && data.data.url) return data.data.url;
-    throw new Error("ImgBB error");
-  } catch(e) {
-    console.error("Upload failed", e);
-    return null;
-  }
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+  const data = await res.json();
+  if(data.data && data.data.url) return data.data.url;
+  throw new Error("ImgBB upload failed");
 }
 
 async function handleFileUpload(e) {
   const files = Array.from(e.target.files || []);
-  if (files.length === 0) return;
-  
-  const uploadBtn = document.getElementById('upload-btn');
-  const originalText = uploadBtn.textContent;
-  isUploading = true;
-  uploadBtn.textContent = "Processing files...";
-  uploadBtn.disabled = true;
-
+  if (!files.length) return;
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
   try {
     for (const file of files) {
       if (file.type.includes("zip") || file.name.endsWith(".zip")) {
-        uploadBtn.textContent = "Extracting ZIP...";
-        await processZip(file);
+        btn.textContent = "Extracting ZIP...";
+        await processZip(file, btn);
       } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-        uploadBtn.textContent = "Extracting PDF...";
-        await processPdf(file);
+        btn.textContent = "Extracting PDF...";
+        await processPdf(file, btn);
       } else if (file.type.startsWith("image/")) {
-        uploadBtn.textContent = "Uploading image...";
+        btn.textContent = "Uploading image...";
         const url = await uploadToImgBB(file, file.name);
         if(url) uploadedImages.push(url);
       }
     }
     renderPreviews();
-  } catch (err) {
-    alert("Error processing files: " + err.message);
-  } finally {
-    isUploading = false;
-    uploadBtn.textContent = "Click to upload files";
-    uploadBtn.disabled = false;
-    e.target.value = ''; // reset input
-  }
+  } catch (err) { alert("Error: " + err.message); }
+  finally { btn.textContent = "Click to upload files"; btn.disabled = false; e.target.value = ''; }
 }
 
-async function processZip(file) {
+async function processZip(file, btn) {
   const zip = await JSZip.loadAsync(file);
-  const imageFiles = [];
-  
-  zip.forEach((relativePath, zipEntry) => {
-    if (!zipEntry.dir && relativePath.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
-      imageFiles.push(zipEntry);
-    }
-  });
-
-  const uploadBtn = document.getElementById('upload-btn');
-  for (let i = 0; i < imageFiles.length; i++) {
-    uploadBtn.textContent = `Uploading extracted image ${i+1}/${imageFiles.length}...`;
-    const blob = await imageFiles[i].async("blob");
-    const url = await uploadToImgBB(blob, imageFiles[i].name);
+  const imgs = [];
+  zip.forEach((path, entry) => { if (!entry.dir && path.match(/\.(jpg|jpeg|png|webp|gif)$/i)) imgs.push(entry); });
+  for (let i = 0; i < imgs.length; i++) {
+    btn.textContent = `ZIP: Uploading ${i+1}/${imgs.length}...`;
+    const blob = await imgs[i].async("blob");
+    const url = await uploadToImgBB(blob, imgs[i].name);
     if(url) uploadedImages.push(url);
   }
 }
 
-async function processPdf(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const numPages = pdf.numPages;
-  const uploadBtn = document.getElementById('upload-btn');
-
-  for (let i = 1; i <= numPages; i++) {
-    uploadBtn.textContent = `Rendering and uploading PDF page ${i}/${numPages}...`;
+async function processPdf(file, btn) {
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  for (let i = 1; i <= pdf.numPages; i++) {
+    btn.textContent = `PDF: Page ${i}/${pdf.numPages}...`;
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 1.5 });
+    const vp = page.getViewport({ scale: 1.5 });
     const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-
-    await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
     const url = await uploadToImgBB(blob, `pdf_page_${i}.jpg`);
     if(url) uploadedImages.push(url);
   }
 }
 
-function removeImage(index) {
-  uploadedImages.splice(index, 1);
-  renderPreviews();
-}
+function removeImage(index) { uploadedImages.splice(index, 1); renderPreviews(); }
 
 function renderPreviews() {
-  const container = document.getElementById('image-preview-container');
-  container.innerHTML = '';
-  uploadedImages.forEach((url, i) => {
-    container.insertAdjacentHTML('beforeend', `
-      <div class="relative">
-        <img src="${url}" class="w-16 h-16 object-cover rounded-lg border border-zinc-700" />
-        <button type="button" onclick="removeImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-bold">×</button>
-      </div>
-    `);
-  });
+  const c = document.getElementById('image-preview-container');
+  c.innerHTML = uploadedImages.map((url, i) => `
+    <div class="relative">
+      <img src="${url}" class="w-16 h-16 object-cover rounded-lg border border-zinc-700"/>
+      <button type="button" onclick="removeImage(${i})" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-bold">×</button>
+    </div>`).join('');
 }
 
-// ----------------- CRUD LOGIC ----------------- //
-
+// ---- CRUD ----
 async function saveProduct(e) {
   e.preventDefault();
-  if(uploadedImages.length === 0) {
-    alert("Please upload at least one image");
-    return;
-  }
-  
+  if(!uploadedImages.length) { alert("Please upload at least one image"); return; }
   const btn = document.getElementById('save-btn');
-  const originalText = btn.textContent;
-  btn.textContent = 'Saving...';
-  btn.disabled = true;
-
+  const orig = btn.textContent;
+  btn.textContent = 'Saving...'; btn.disabled = true;
   const id = document.getElementById('p-id').value;
-  const isEdit = !!id;
-  const url = isEdit ? `/api/products/${id}` : '/api/products';
-  const method = isEdit ? 'PUT' : 'POST';
-
+  const url = id ? `/api/products/${id}` : '/api/products';
   const body = {
     name: document.getElementById('p-name').value,
     description: document.getElementById('p-desc').value,
@@ -397,44 +319,71 @@ async function saveProduct(e) {
     isLowInStock: document.getElementById('p-low-stock').checked,
     isOutOfStock: document.getElementById('p-out-stock').checked,
   };
-
   try {
-    const res = await fetch(url, {
-      method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-    });
-    if (res.ok) {
-      closeModal();
-    } else {
-      const data = await res.json();
-      alert(data.message || 'Error saving product');
-    }
-  } catch {
-    alert('Network error');
-  } finally {
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
+    const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    if (res.ok) { closeModal(); /* Pusher will trigger loadProducts() */ }
+    else { const d = await res.json(); alert(d.message || 'Error saving'); }
+  } catch { alert('Network error'); }
+  finally { btn.textContent = orig; btn.disabled = false; }
 }
 
 async function deleteProduct(id) {
-  if (!confirm('Are you sure you want to delete this product?')) return;
-  try { await fetch(`/api/products/${id}`, { method: 'DELETE' }); } catch(e) {}
+  if (!confirm('Delete this product?')) return;
+  await fetch(`/api/products/${id}`, { method: 'DELETE' });
+  // Pusher will handle grid update
 }
 
 async function toggleFeatured(id) {
-  try { await fetch(`/api/products/${id}/toggle-featured`, { method: 'PATCH' }); } catch(e){}
+  await fetch(`/api/products/${id}/toggle-featured`, { method: 'PATCH' });
 }
 async function toggleStock(id) {
-  try { await fetch(`/api/products/${id}/toggle-out-of-stock`, { method: 'PATCH' }); } catch(e){}
+  await fetch(`/api/products/${id}/toggle-out-of-stock`, { method: 'PATCH' });
 }
 </script>
 
+<!-- Pusher: update grid WITHOUT any page reload -->
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
-const channel = pusher.subscribe('mhq-reseller');
+const pusherAdmin = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+const adminChannel = pusherAdmin.subscribe('mhq-reseller');
 
-channel.bind('product:new', () => window.location.reload());
-channel.bind('product:updated', () => window.location.reload());
-channel.bind('product:deleted', () => window.location.reload());
+// New product added → re-render full grid (lightweight, no reload)
+adminChannel.bind('product:new', () => loadProducts());
+
+// Product updated → update only that one card
+adminChannel.bind('product:updated', (data) => {
+  if (data && data._id) {
+    // Fetch the single updated product and re-render its card
+    fetch('/api/products/' + data._id)
+      .then(r => r.json())
+      .then(p => {
+        const el = document.getElementById('product-card-' + p._id);
+        if (el) {
+          el.outerHTML = renderProductCard(p);
+        } else {
+          loadProducts(); // card not found, do full reload
+        }
+      }).catch(() => loadProducts());
+  } else {
+    loadProducts();
+  }
+});
+
+// Product deleted → remove card from DOM instantly
+adminChannel.bind('product:deleted', (data) => {
+  const id = data && data.id ? data.id : null;
+  if (id) {
+    const el = document.getElementById('product-card-' + id);
+    if (el) {
+      el.remove();
+      const remaining = document.querySelectorAll('.product-card').length;
+      document.getElementById('products-count').textContent = remaining + ' products total';
+      if (remaining === 0) {
+        document.getElementById('admin-products-grid').innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No products yet. Add your first product!</div>';
+      }
+    }
+  } else {
+    loadProducts();
+  }
+});
 </script>

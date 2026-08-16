@@ -129,14 +129,21 @@ function renderCart() {
   checkoutPanel.classList.remove('hidden');
 
   let subtotal = 0;
+  let totalDelivery = 0;
+
   cart.forEach((item, idx) => {
     subtotal += item.price * item.quantity;
+    // Add delivery charge once per product (not multiplied by qty) unless free delivery
+    if (!item.isFreeDelivery && item.deliveryCharges > 0) {
+      totalDelivery += item.deliveryCharges;
+    }
     container.insertAdjacentHTML('beforeend', `
       <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 flex gap-4 items-start">
         ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0 bg-zinc-800"/>` : `<div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>`}
         <div class="flex-1 min-w-0">
           <h3 class="text-white font-semibold text-sm line-clamp-2 mb-1">${item.name}</h3>
           <p class="text-amber-400 font-bold text-sm">Rs ${item.price}</p>
+          ${item.isFreeDelivery ? '<p class="text-emerald-400 text-xs font-medium">✓ Free Delivery</p>' : item.deliveryCharges > 0 ? `<p class="text-zinc-500 text-xs">Delivery: Rs ${item.deliveryCharges}</p>` : ''}
           <div class="flex items-center gap-2 mt-2">
             <button onclick="changeQty(${idx}, -1)" class="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 rounded-full text-white font-bold transition-colors flex items-center justify-center text-sm">-</button>
             <span class="text-white font-semibold w-6 text-center text-sm">${item.quantity}</span>
@@ -150,10 +157,11 @@ function renderCart() {
       </div>`);
   });
 
+  const grandTotal = subtotal + totalDelivery;
   document.getElementById('summary-subtotal').textContent = 'Rs ' + subtotal.toFixed(0);
-  document.getElementById('summary-delivery').textContent = 'Rs 0';
-  document.getElementById('summary-total').textContent = 'Rs ' + subtotal.toFixed(0);
-  document.getElementById('modal-total').textContent = 'Rs ' + subtotal.toFixed(0);
+  document.getElementById('summary-delivery').textContent = totalDelivery === 0 ? 'Free' : 'Rs ' + totalDelivery.toFixed(0);
+  document.getElementById('summary-total').textContent = 'Rs ' + grandTotal.toFixed(0);
+  document.getElementById('modal-total').textContent = 'Rs ' + grandTotal.toFixed(0);
 }
 
 function changeQty(idx, delta) {

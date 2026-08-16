@@ -107,10 +107,12 @@ function addToCart() {
   const name = '<%= product.name.replace(/'/g, "\\'") %>';
   const price = <%= finalPrice %>;
   const image = '<%= product.images && product.images.length ? product.images[0] : "" %>';
+  const deliveryCharges = <%= product.deliveryCharges || 0 %>;
+  const isFreeDelivery = <%= product.isFreeDelivery ? 'true' : 'false' %>;
   const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
   const existing = cart.find(i => i.id === id);
   if (existing) existing.quantity += qty;
-  else cart.push({ id, name, price, image, quantity: qty });
+  else cart.push({ id, name, price, image, quantity: qty, deliveryCharges, isFreeDelivery });
   localStorage.setItem('mhq_cart', JSON.stringify(cart));
   updateCartCount();
   const toast = document.getElementById('cart-toast');

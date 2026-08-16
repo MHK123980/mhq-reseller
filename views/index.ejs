@@ -97,7 +97,7 @@ function discountedPrice(p) {
             <p class="text-amber-400 font-bold text-sm">Rs <%= p.price %></p>
             <% } %>
           </div>
-          <button onclick="event.stopPropagation(); addToCartFromCard('<%= p._id %>', '<%= p.name.replace(/'/g, "\'") %>', <%= p.hasDiscount && p.discountPercent > 0 ? (p.price - (p.price * p.discountPercent / 100)).toFixed(0) : p.price %>, '<%= p.images && p.images.length > 0 ? p.images[0] : "" %>')"
+          <button onclick="event.stopPropagation(); addToCartFromCard('<%= p._id %>', '<%= p.name.replace(/'/g, "\'") %>', <%= p.hasDiscount && p.discountPercent > 0 ? (p.price - (p.price * p.discountPercent / 100)).toFixed(0) : p.price %>, '<%= p.images && p.images.length > 0 ? p.images[0] : "" %>', <%= p.deliveryCharges || 0 %>, <%= p.isFreeDelivery ? 'true' : 'false' %>)"
             class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium <%= p.isOutOfStock ? 'opacity-50 cursor-not-allowed' : '' %>"
             <%= p.isOutOfStock ? 'disabled' : '' %>>
             Add
@@ -155,7 +155,7 @@ function discountedPrice(p) {
             <p class="text-amber-400 font-bold text-sm">Rs <%= p.price %></p>
             <% } %>
           </div>
-          <button onclick="event.stopPropagation(); addToCartFromCard('<%= p._id %>', '<%= p.name.replace(/'/g, "\'") %>', <%= p.hasDiscount && p.discountPercent > 0 ? (p.price - (p.price * p.discountPercent / 100)).toFixed(0) : p.price %>, '<%= p.images && p.images.length > 0 ? p.images[0] : "" %>')"
+          <button onclick="event.stopPropagation(); addToCartFromCard('<%= p._id %>', '<%= p.name.replace(/'/g, "\'") %>', <%= p.hasDiscount && p.discountPercent > 0 ? (p.price - (p.price * p.discountPercent / 100)).toFixed(0) : p.price %>, '<%= p.images && p.images.length > 0 ? p.images[0] : "" %>', <%= p.deliveryCharges || 0 %>, <%= p.isFreeDelivery ? 'true' : 'false' %>)"
             class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium <%= p.isOutOfStock ? 'opacity-50 cursor-not-allowed' : '' %>"
             <%= p.isOutOfStock ? 'disabled' : '' %>>
             Add
@@ -198,13 +198,13 @@ function filterByCategory(catId) {
   });
 }
 
-function addToCartFromCard(id, name, price, image) {
+function addToCartFromCard(id, name, price, image, deliveryCharges, isFreeDelivery) {
   const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
   const existing = cart.find(i => i.id === id);
   if (existing) {
     existing.quantity += 1;
   } else {
-    cart.push({ id, name, price: parseFloat(price), image, quantity: 1 });
+    cart.push({ id, name, price: parseFloat(price), image, quantity: 1, deliveryCharges: deliveryCharges || 0, isFreeDelivery: isFreeDelivery || false });
   }
   localStorage.setItem('mhq_cart', JSON.stringify(cart));
   updateCartCount();
@@ -269,9 +269,12 @@ channel.bind('product:new', (data) => {
 });
 
 channel.bind('product:updated', (data) => {
-  document.querySelectorAll(`[data-id="${data._id}"]`).forEach(el => {
-    el.outerHTML = buildProductCard(data);
-  });
+  if (!data || !data._id) return;
+  fetch('/api/products/' + data._id).then(r => r.json()).then(p => {
+    document.querySelectorAll(`[data-id="${p._id}"]`).forEach(el => {
+      el.outerHTML = buildProductCard(p);
+    });
+  }).catch(() => {});
 });
 
 channel.bind('product:deleted', (data) => {
