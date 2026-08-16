@@ -18,6 +18,26 @@
     }
   </script>
   <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* Mobile & Desktop Friendly Fixed Still Background Pattern */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('/bg-image.png');
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      z-index: -10;
+      pointer-events: none;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
+    }
+  </style>
 </head>
 <body class="min-h-screen text-white font-sans">
   <!-- Background -->

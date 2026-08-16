@@ -1,7 +1,13 @@
 <div class="p-6 max-w-7xl mx-auto">
-  <div class="mb-8">
-    <h1 class="text-2xl font-bold text-white mb-1">Orders Management</h1>
-    <p class="text-zinc-400 text-sm">View and update customer orders</p>
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-1">Orders Management</h1>
+      <p class="text-zinc-400 text-sm">View and update customer orders</p>
+    </div>
+    <button onclick="openAddOrderModal()" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 text-sm">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Order
+    </button>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="orders-grid">
@@ -32,39 +38,138 @@
         <p class="text-xs text-zinc-400"><%= o.customerDetails.phoneNo %></p>
       </div>
 
-      <div class="mb-4">
-        <p class="text-xs text-zinc-500 mb-1">Address</p>
-        <p class="text-xs text-zinc-300 leading-relaxed">
-          House <%= o.customerDetails.houseNo %>, <%= o.customerDetails.streetNameNo %>,<br/>
-          <%= o.customerDetails.areaName %>, <%= o.customerDetails.city %>, <%= o.customerDetails.province %>
-          <% if(o.customerDetails.famousPlace){ %><br/><span class="text-zinc-500">Near: <%= o.customerDetails.famousPlace %></span><% } %>
-        </p>
-      </div>
-
       <div class="mb-4 flex-1">
-        <p class="text-xs text-zinc-500 mb-2">Items</p>
+        <p class="text-xs text-zinc-500 mb-2">Items (<%= o.products.length %>)</p>
         <div class="space-y-2">
-          <% o.products.forEach(p => { %>
+          <% o.products.slice(0,2).forEach(p => { %>
           <div class="flex justify-between text-xs">
-            <span class="text-zinc-300"><%= p.quantity %>x <%= p.product ? p.product.name : 'Unknown Product' %></span>
-            <span class="text-zinc-400">Rs <%= p.priceAtPurchase * p.quantity %></span>
+            <span class="text-zinc-300 truncate pr-2"><%= p.quantity %>x <%= p.product ? p.product.name : 'Unknown Product' %></span>
+            <span class="text-zinc-400 flex-shrink-0">Rs <%= p.priceAtPurchase * p.quantity %></span>
           </div>
           <% }) %>
+          <% if(o.products.length > 2) { %>
+            <p class="text-xs text-zinc-500 italic">+ <%= o.products.length - 2 %> more items</p>
+          <% } %>
         </div>
       </div>
 
-      <div class="mt-auto border-t border-zinc-800 pt-4 flex items-center justify-between">
-        <div>
-          <p class="text-xs text-zinc-500">Total Amount</p>
-          <p class="text-lg font-bold text-amber-400">Rs <%= o.totalAmount %></p>
+      <div class="mt-auto border-t border-zinc-800 pt-4">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <p class="text-xs text-zinc-500">Total Amount</p>
+            <p class="text-lg font-bold text-amber-400">Rs <%= o.totalAmount %></p>
+          </div>
+          <button onclick="printSlip('<%= Buffer.from(JSON.stringify(o)).toString('base64') %>')" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors font-medium">Print Slip</button>
         </div>
-        <button onclick="printSlip('<%= encodeURIComponent(JSON.stringify(o)) %>')" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-3 py-1.5 rounded-lg transition-colors font-medium">Print Slip</button>
+        <button onclick="viewOrderDetails('<%= Buffer.from(JSON.stringify(o)).toString('base64') %>')" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2 rounded-xl text-xs transition-colors border border-zinc-700">
+          View Details
+        </button>
       </div>
     </div>
     <% }) %>
     <% if(orders.length === 0) { %>
     <div class="col-span-full text-center py-20 text-zinc-500">No orders found.</div>
     <% } %>
+  </div>
+</div>
+
+<!-- View Order Modal -->
+<div id="view-order-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/70" onclick="document.getElementById('view-order-modal').classList.add('hidden')"></div>
+  <div class="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-white">Order Details</h2>
+      <button onclick="document.getElementById('view-order-modal').classList.add('hidden')" class="text-zinc-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div id="view-order-content" class="text-sm text-zinc-300 space-y-6"></div>
+  </div>
+</div>
+
+<!-- Add Order Modal -->
+<div id="add-order-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/70" onclick="closeAddOrderModal()"></div>
+  <div class="relative bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold text-white">Create New Order</h2>
+      <button onclick="closeAddOrderModal()" class="text-zinc-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+
+    <form id="add-order-form" onsubmit="submitAddOrder(event)">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Customer Details -->
+        <div>
+          <h3 class="text-amber-400 font-bold mb-4 border-b border-zinc-700 pb-2">Customer Details</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Full Name *</label>
+              <input type="text" id="ao-name" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Phone No *</label>
+              <input type="tel" id="ao-phone" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-zinc-400 mb-1">House No *</label>
+                <input type="text" id="ao-house" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs text-zinc-400 mb-1">Street *</label>
+                <input type="text" id="ao-street" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Area Name *</label>
+              <input type="text" id="ao-area" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-zinc-400 mb-1">City *</label>
+                <input type="text" id="ao-city" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs text-zinc-400 mb-1">Province *</label>
+                <select id="ao-province" required class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none">
+                  <option value="">Select</option>
+                  <option>Punjab</option><option>Sindh</option><option>KPK</option>
+                  <option>Balochistan</option><option>Islamabad</option>
+                  <option>AJK</option><option>Gilgit-Baltistan</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Famous Place</label>
+              <input type="text" id="ao-landmark" class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Selection -->
+        <div class="flex flex-col">
+          <h3 class="text-amber-400 font-bold mb-4 border-b border-zinc-700 pb-2">Products Selection</h3>
+          
+          <div class="mb-4 relative">
+            <label class="block text-xs text-zinc-400 mb-1">Search & Add Product</label>
+            <input type="text" id="ao-product-search" onkeyup="searchProducts(this.value)" class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:border-amber-500 outline-none" placeholder="Type to search products..." />
+            <div id="ao-search-results" class="absolute left-0 right-0 top-14 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto hidden"></div>
+          </div>
+
+          <div class="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl p-3 overflow-y-auto max-h-60 mb-4" id="ao-selected-products">
+            <p class="text-zinc-500 text-xs text-center py-4">No products added yet.</p>
+          </div>
+
+          <div class="border-t border-zinc-700 pt-4 flex justify-between items-center mb-4">
+            <span class="font-bold text-white text-sm">Total Amount:</span>
+            <span class="font-bold text-amber-400 text-lg" id="ao-total-amount">Rs 0</span>
+          </div>
+
+          <button type="submit" id="ao-submit-btn" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors">
+            Create Order
+          </button>
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -82,8 +187,184 @@ async function updateOrderStatus(id, status) {
   } catch(e) { alert('Failed to update status'); }
 }
 
-function printSlip(orderDataStr) {
-  const o = JSON.parse(decodeURIComponent(orderDataStr));
+function viewOrderDetails(b64Data) {
+  const o = JSON.parse(atob(b64Data));
+  let itemsHtml = o.products.map(p => `
+    <div class="flex justify-between items-center bg-zinc-800 p-2 rounded-lg">
+      <div class="flex items-center gap-3">
+        ${p.product && p.product.images && p.product.images[0] ? `<img src="${p.product.images[0]}" class="w-10 h-10 rounded object-cover">` : `<div class="w-10 h-10 bg-zinc-700 rounded"></div>`}
+        <div>
+          <p class="font-medium text-white">${p.product ? p.product.name : 'Unknown Product'}</p>
+          <p class="text-xs text-zinc-400">Qty: ${p.quantity} x Rs ${p.priceAtPurchase}</p>
+        </div>
+      </div>
+      <p class="font-bold text-amber-400">Rs ${p.quantity * p.priceAtPurchase}</p>
+    </div>
+  `).join('');
+
+  document.getElementById('view-order-content').innerHTML = `
+    <div class="grid grid-cols-2 gap-6 border-b border-zinc-800 pb-6">
+      <div>
+        <h3 class="text-amber-500 font-bold mb-2">Customer Info</h3>
+        <p><span class="text-zinc-500">Full Name:</span> <span class="text-white">${o.customerDetails.fullName}</span></p>
+        <p><span class="text-zinc-500">Phone No:</span> <span class="text-white">${o.customerDetails.phoneNo}</span></p>
+        <p><span class="text-zinc-500">Email:</span> <span class="text-white">${o.customerDetails.email || '-'}</span></p>
+      </div>
+      <div>
+        <h3 class="text-amber-500 font-bold mb-2">Delivery Address</h3>
+        <p><span class="text-zinc-500">House No:</span> <span class="text-white">${o.customerDetails.houseNo}</span></p>
+        <p><span class="text-zinc-500">Street:</span> <span class="text-white">${o.customerDetails.streetNameNo}</span></p>
+        <p><span class="text-zinc-500">Area:</span> <span class="text-white">${o.customerDetails.areaName}</span></p>
+        <p><span class="text-zinc-500">City:</span> <span class="text-white">${o.customerDetails.city}, ${o.customerDetails.province}</span></p>
+        <p><span class="text-zinc-500">Landmark:</span> <span class="text-white">${o.customerDetails.famousPlace || '-'}</span></p>
+      </div>
+    </div>
+    
+    <div class="pt-2">
+      <h3 class="text-amber-500 font-bold mb-4">Order Items</h3>
+      <div class="space-y-2">${itemsHtml}</div>
+    </div>
+    <div class="mt-4 text-right">
+      <p class="text-lg text-white">Grand Total: <span class="font-bold text-amber-500 text-2xl ml-2">Rs ${o.totalAmount}</span></p>
+    </div>
+  `;
+  document.getElementById('view-order-modal').classList.remove('hidden');
+}
+
+// ---- Add Order Logic ----
+let allProducts = [];
+let selectedOrderProducts = [];
+
+async function openAddOrderModal() {
+  document.getElementById('add-order-modal').classList.remove('hidden');
+  document.getElementById('add-order-form').reset();
+  selectedOrderProducts = [];
+  renderOrderProducts();
+  
+  if(allProducts.length === 0) {
+    try {
+      const res = await fetch('/api/products');
+      allProducts = await res.json();
+    } catch(e) { console.error("Failed to load products for search"); }
+  }
+}
+
+function closeAddOrderModal() {
+  document.getElementById('add-order-modal').classList.add('hidden');
+}
+
+function searchProducts(query) {
+  const resContainer = document.getElementById('ao-search-results');
+  if(!query.trim()) { resContainer.classList.add('hidden'); return; }
+  
+  const q = query.toLowerCase();
+  const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q) && !p.isOutOfStock).slice(0, 5);
+  
+  if(filtered.length === 0) {
+    resContainer.innerHTML = '<div class="p-3 text-xs text-zinc-400">No matching in-stock products found</div>';
+  } else {
+    resContainer.innerHTML = filtered.map(p => `
+      <div class="p-2 border-b border-zinc-700 hover:bg-zinc-700 cursor-pointer flex justify-between items-center" onclick="addProductToOrder('${p._id}', '${p.name.replace(/'/g,"\\'")}', ${p.price})">
+        <span class="text-sm text-white truncate pr-2">${p.name}</span>
+        <span class="text-xs text-amber-400 font-bold whitespace-nowrap">Rs ${p.price}</span>
+      </div>
+    `).join('');
+  }
+  resContainer.classList.remove('hidden');
+}
+
+function addProductToOrder(id, name, price) {
+  const existing = selectedOrderProducts.find(p => p.productId === id);
+  if(existing) { existing.quantity++; }
+  else { selectedOrderProducts.push({ productId: id, name, price, quantity: 1 }); }
+  
+  document.getElementById('ao-product-search').value = '';
+  document.getElementById('ao-search-results').classList.add('hidden');
+  renderOrderProducts();
+}
+
+function changeOrderQty(id, delta) {
+  const idx = selectedOrderProducts.findIndex(p => p.productId === id);
+  if(idx === -1) return;
+  selectedOrderProducts[idx].quantity += delta;
+  if(selectedOrderProducts[idx].quantity <= 0) {
+    selectedOrderProducts.splice(idx, 1);
+  }
+  renderOrderProducts();
+}
+
+function renderOrderProducts() {
+  const container = document.getElementById('ao-selected-products');
+  let total = 0;
+  
+  if(selectedOrderProducts.length === 0) {
+    container.innerHTML = '<p class="text-zinc-500 text-xs text-center py-4">No products added yet.</p>';
+  } else {
+    container.innerHTML = selectedOrderProducts.map(p => {
+      total += p.price * p.quantity;
+      return `
+      <div class="flex items-center justify-between bg-zinc-800 p-2 rounded mb-2 text-sm">
+        <div class="flex-1 truncate pr-2 text-white">${p.name}</div>
+        <div class="flex items-center gap-3">
+          <span class="text-amber-400 font-bold w-16 text-right">Rs ${p.price * p.quantity}</span>
+          <div class="flex items-center gap-2 bg-zinc-900 rounded-full px-1 py-0.5 border border-zinc-700">
+            <button type="button" onclick="changeOrderQty('${p.productId}', -1)" class="w-6 h-6 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold">-</button>
+            <span class="text-white w-4 text-center text-xs">${p.quantity}</span>
+            <button type="button" onclick="changeOrderQty('${p.productId}', 1)" class="w-6 h-6 rounded-full bg-zinc-700 text-white flex items-center justify-center font-bold">+</button>
+          </div>
+        </div>
+      </div>
+    `}).join('');
+  }
+  document.getElementById('ao-total-amount').textContent = 'Rs ' + total;
+}
+
+async function submitAddOrder(e) {
+  e.preventDefault();
+  if(selectedOrderProducts.length === 0) return alert("Please add at least one product.");
+  
+  const btn = document.getElementById('ao-submit-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const payload = {
+    customerDetails: {
+      fullName: document.getElementById('ao-name').value,
+      phoneNo: document.getElementById('ao-phone').value,
+      houseNo: document.getElementById('ao-house').value,
+      streetNameNo: document.getElementById('ao-street').value,
+      areaName: document.getElementById('ao-area').value,
+      city: document.getElementById('ao-city').value,
+      province: document.getElementById('ao-province').value,
+      famousPlace: document.getElementById('ao-landmark').value,
+      email: ""
+    },
+    products: selectedOrderProducts
+  };
+
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(res.ok) {
+      closeAddOrderModal();
+    } else {
+      const data = await res.json();
+      alert(data.message || 'Error creating order');
+    }
+  } catch(err) {
+    alert('Network error');
+  } finally {
+    btn.textContent = 'Create Order';
+    btn.disabled = false;
+  }
+}
+
+// ---- Print Logic ----
+function printSlip(b64Data) {
+  const o = JSON.parse(atob(b64Data));
   const iframe = document.getElementById('print-frame');
   const d = new Date(o.createdAt).toLocaleString();
   let itemsHtml = '';
@@ -111,7 +392,7 @@ function printSlip(orderDataStr) {
           .col { width: 48%; }
           .box { border: 1px solid #000; padding: 15px; border-radius: 8px; }
           .box h3 { margin-top: 0; margin-bottom: 10px; font-size: 14px; text-transform: uppercase; color: #666; }
-          table { w-full; border-collapse: collapse; margin-bottom: 30px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
           th { text-align: left; padding: 10px; border-bottom: 2px solid #000; }
           .total { text-align: right; font-size: 20px; font-weight: bold; border-top: 2px solid #000; padding-top: 15px; }
         </style>
@@ -138,7 +419,7 @@ function printSlip(orderDataStr) {
             <strong>Status:</strong> ${o.status}
           </div>
         </div>
-        <table style="width: 100%">
+        <table>
           <thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th></tr></thead>
           <tbody>${itemsHtml}</tbody>
         </table>
@@ -155,6 +436,15 @@ function printSlip(orderDataStr) {
     iframe.contentWindow.print();
   }, 500);
 }
+
+// Close dropdown if clicked outside
+document.addEventListener('click', function(e) {
+  const searchInput = document.getElementById('ao-product-search');
+  const resultsDiv = document.getElementById('ao-search-results');
+  if (searchInput && !searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+    resultsDiv.classList.add('hidden');
+  }
+});
 </script>
 
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>

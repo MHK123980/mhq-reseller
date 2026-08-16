@@ -11,10 +11,10 @@ const app = express();
 
 // Pusher init
 const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
+  appId: process.env.PUSHER_APP_ID || "2186529",
+  key: process.env.PUSHER_KEY || "f713f77ab9e98a84ccf7",
+  secret: process.env.PUSHER_SECRET || "eacde0a320a88b667184",
+  cluster: process.env.PUSHER_CLUSTER || "ap2",
   useTLS: true
 });
 app.set('pusher', pusher);
