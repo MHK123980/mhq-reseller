@@ -41,7 +41,7 @@ function discountedPrice(p) {
 
 <!-- CATEGORIES SECTION -->
 <% if (categories.length > 0) { %>
-<section class="py-12 px-4 max-w-7xl mx-auto">
+<section class="py-12 px-4 max-w-7xl mx-auto hidden md:block">
   <h2 class="text-2xl font-bold text-white mb-6">Browse <span class="text-amber-400">Categories</span></h2>
   <div class="flex flex-wrap gap-3" id="categories-list">
     <button onclick="filterByCategory('all')" class="category-btn active-cat px-5 py-2 rounded-full border border-amber-500 bg-amber-500/20 text-amber-400 text-sm font-medium transition-all hover:bg-amber-500/30" data-cat="all">
