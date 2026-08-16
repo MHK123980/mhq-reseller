@@ -333,23 +333,60 @@ async function saveProduct(e) {
   };
   try {
     const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (res.ok) { closeModal(); /* Pusher will trigger loadProducts() */ }
-    else { const d = await res.json(); alert(d.message || 'Error saving'); }
+    const data = await res.json();
+    if (res.ok && data.product) {
+      closeModal();
+      // Update DOM immediately — don't wait for Pusher
+      const p = data.product;
+      if (id) {
+        // Update existing card
+        const el = document.getElementById('product-card-' + id);
+        if (el) el.outerHTML = renderProductCard(p);
+        else loadProducts();
+      } else {
+        // Prepend new card
+        const grid = document.getElementById('admin-products-grid');
+        const emptyMsg = grid.querySelector('.col-span-full');
+        if (emptyMsg) emptyMsg.remove();
+        grid.insertAdjacentHTML('afterbegin', renderProductCard(p));
+        allAdminProducts.unshift(p);
+        document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
+      }
+    } else { alert(data.message || 'Error saving'); }
   } catch { alert('Network error'); }
   finally { btn.textContent = orig; btn.disabled = false; }
 }
 
 async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
-  await fetch(`/api/products/${id}`, { method: 'DELETE' });
-  // Pusher will handle grid update
+  const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+  if (res.ok) {
+    // Remove card immediately
+    const el = document.getElementById('product-card-' + id);
+    if (el) el.remove();
+    allAdminProducts = allAdminProducts.filter(p => p._id !== id);
+    document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
+    if (allAdminProducts.length === 0) {
+      document.getElementById('admin-products-grid').innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No products yet. Add your first product!</div>';
+    }
+  }
 }
 
 async function toggleFeatured(id) {
-  await fetch(`/api/products/${id}/toggle-featured`, { method: 'PATCH' });
+  const res = await fetch(`/api/products/${id}/toggle-featured`, { method: 'PATCH' });
+  const data = await res.json();
+  if (data.product) {
+    const el = document.getElementById('product-card-' + id);
+    if (el) el.outerHTML = renderProductCard(data.product);
+  }
 }
 async function toggleStock(id) {
-  await fetch(`/api/products/${id}/toggle-out-of-stock`, { method: 'PATCH' });
+  const res = await fetch(`/api/products/${id}/toggle-out-of-stock`, { method: 'PATCH' });
+  const data = await res.json();
+  if (data.product) {
+    const el = document.getElementById('product-card-' + id);
+    if (el) el.outerHTML = renderProductCard(data.product);
+  }
 }
 </script>
 

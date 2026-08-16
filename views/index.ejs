@@ -240,20 +240,27 @@ function buildProductCard(p) {
   const priceHtml = p.hasDiscount && p.discountPercent > 0
     ? `<p class="text-amber-400 font-bold text-sm">Rs ${discountedPrice}</p><p class="text-zinc-500 text-xs line-through">Rs ${p.price}</p>`
     : `<p class="text-amber-400 font-bold text-sm">Rs ${p.price}</p>`;
+  
+  const stockBadge = p.isOutOfStock ? `<div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Out of Stock</div>` : p.isLowInStock ? `<div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Low Stock</div>` : '';
+  const discBadge = p.hasDiscount && p.discountPercent > 0 ? `<div class="absolute top-2 right-2 bg-amber-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">${p.discountPercent}% OFF</div>` : '';
+  const deliveryHtml = p.isFreeDelivery ? `<p class="text-emerald-400 text-xs mt-1 font-medium">✓ Free Delivery</p>` : p.deliveryCharges > 0 ? `<p class="text-zinc-500 text-xs mt-1">Delivery: Rs ${p.deliveryCharges}</p>` : '';
+
   return `<div class="product-card bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer group"
        onclick="window.location='/product/${p._id}'" data-cat="${catId}" data-id="${p._id}">
     <div class="relative aspect-square overflow-hidden bg-zinc-800">
       ${imgHtml}
-      ${p.hasDiscount && p.discountPercent > 0 ? `<div class="absolute top-2 right-2 bg-amber-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">${p.discountPercent}% OFF</div>` : ''}
+      ${stockBadge}
+      ${discBadge}
     </div>
     <div class="p-3">
       <p class="text-xs text-amber-500/70 font-medium mb-1">${catName}</p>
       <h3 class="text-sm font-semibold text-white line-clamp-2 mb-2">${p.name}</h3>
       <div class="flex items-center justify-between">
         <div>${priceHtml}</div>
-        <button onclick="event.stopPropagation(); addToCartFromCard('${p._id}', '${p.name.replace(/'/g,"\\'")}', ${discountedPrice}, '${p.images && p.images.length ? p.images[0] : ''}')"
-          class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium">Add</button>
+        <button onclick="event.stopPropagation(); addToCartFromCard('${p._id}', '${p.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}', ${discountedPrice}, '${p.images && p.images.length ? p.images[0] : ''}', ${p.deliveryCharges||0}, ${p.isFreeDelivery})"
+          class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium" ${p.isOutOfStock?'disabled':''}>Add</button>
       </div>
+      ${deliveryHtml}
     </div>
   </div>`;
 }
