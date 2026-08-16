@@ -6,7 +6,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 
 import { API_URL, SOCKET_URL } from "@/config/api";
-const IMGBB_KEY = "d26bb3aafef1e75c324e7ce3072e3b47";
+const IMGBB_KEY = process.env.NEXT_PUBLIC_IMGBB_KEY || "d26bb3aafef1e75c324e7ce3072e3b47";
 
 function getToken() {
   return typeof window !== "undefined" ? localStorage.getItem("token") : null;
