@@ -1,0 +1,227 @@
+<section class="py-24 px-4 max-w-7xl mx-auto">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Cart Items -->
+    <div class="lg:col-span-2">
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-6">Shopping <span class="text-amber-400">Cart</span></h1>
+
+      <div id="cart-empty" class="hidden text-center py-20">
+        <svg class="w-20 h-20 text-zinc-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <p class="text-zinc-500 text-lg mb-4">Your cart is empty</p>
+        <a href="/products" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-full transition-all font-medium text-sm">Browse Products</a>
+      </div>
+
+      <div id="cart-items" class="space-y-4"></div>
+    </div>
+
+    <!-- Order Summary + Checkout -->
+    <div id="checkout-panel" class="hidden">
+      <!-- Summary -->
+      <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-5 mb-4 sticky top-24">
+        <h2 class="text-lg font-bold text-white mb-4">Order Summary</h2>
+        <div class="space-y-2 text-sm mb-4">
+          <div class="flex justify-between text-zinc-400"><span>Subtotal</span><span id="summary-subtotal">Rs 0</span></div>
+          <div class="flex justify-between text-zinc-400"><span>Delivery</span><span id="summary-delivery">Rs 0</span></div>
+          <div class="border-t border-zinc-700 pt-3 flex justify-between text-white font-bold text-base">
+            <span>Total</span><span id="summary-total" class="text-amber-400">Rs 0</span>
+          </div>
+        </div>
+        <button onclick="showCheckout()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-full transition-all text-sm">
+          Proceed to Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Form Modal -->
+  <div id="checkout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-zinc-950 border border-zinc-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-white">Checkout Details</h2>
+        <button onclick="document.getElementById('checkout-modal').classList.add('hidden')" class="text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <form id="checkout-form" onsubmit="placeOrder(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Full Name *</label>
+          <input type="text" name="fullName" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Enter your full name"/>
+        </div>
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Phone Number *</label>
+          <input type="tel" name="phoneNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="03XXXXXXXXX"/>
+        </div>
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">House No. *</label>
+          <input type="text" name="houseNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="House/Flat number"/>
+        </div>
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Street Name/No. *</label>
+          <input type="text" name="streetNameNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Street name or number"/>
+        </div>
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Area Name *</label>
+          <input type="text" name="areaName" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Colony / Area name"/>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-zinc-400 mb-1">City *</label>
+            <input type="text" name="city" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="City"/>
+          </div>
+          <div>
+            <label class="block text-sm text-zinc-400 mb-1">Province *</label>
+            <select name="province" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors">
+              <option value="">Select</option>
+              <option>Punjab</option><option>Sindh</option><option>KPK</option><option>Balochistan</option>
+              <option>AJK</option><option>Gilgit-Baltistan</option><option>Islamabad</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Famous Place / Landmark</label>
+          <input type="text" name="famousPlace" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Near mosque, school, etc. (optional)"/>
+        </div>
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Email</label>
+          <input type="email" name="email" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Optional"/>
+        </div>
+
+        <div class="border-t border-zinc-700 pt-4">
+          <div class="flex justify-between text-white font-bold mb-4">
+            <span>Total Amount</span>
+            <span class="text-amber-400" id="modal-total">Rs 0</span>
+          </div>
+          <button type="submit" id="place-btn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-full transition-all text-sm">
+            Place Order
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+    <div class="bg-zinc-950 border border-zinc-700 rounded-2xl p-8 max-w-sm w-full text-center">
+      <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h2 class="text-2xl font-bold text-white mb-2">Order Placed! 🎉</h2>
+      <p class="text-zinc-400 mb-6 text-sm">Your order has been received. We'll contact you soon for confirmation.</p>
+      <a href="/" class="block bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-full transition-all text-sm">Back to Home</a>
+    </div>
+  </div>
+</section>
+
+<script>
+function renderCart() {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  const container = document.getElementById('cart-items');
+  const emptyEl = document.getElementById('cart-empty');
+  const checkoutPanel = document.getElementById('checkout-panel');
+  container.innerHTML = '';
+
+  if (cart.length === 0) {
+    emptyEl.classList.remove('hidden');
+    checkoutPanel.classList.add('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  checkoutPanel.classList.remove('hidden');
+
+  let subtotal = 0;
+  cart.forEach((item, idx) => {
+    subtotal += item.price * item.quantity;
+    container.insertAdjacentHTML('beforeend', `
+      <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 flex gap-4 items-start">
+        ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0 bg-zinc-800"/>` : `<div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>`}
+        <div class="flex-1 min-w-0">
+          <h3 class="text-white font-semibold text-sm line-clamp-2 mb-1">${item.name}</h3>
+          <p class="text-amber-400 font-bold text-sm">Rs ${item.price}</p>
+          <div class="flex items-center gap-2 mt-2">
+            <button onclick="changeQty(${idx}, -1)" class="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 rounded-full text-white font-bold transition-colors flex items-center justify-center text-sm">-</button>
+            <span class="text-white font-semibold w-6 text-center text-sm">${item.quantity}</span>
+            <button onclick="changeQty(${idx}, 1)" class="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 rounded-full text-white font-bold transition-colors flex items-center justify-center text-sm">+</button>
+          </div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <p class="text-white font-bold text-sm">Rs ${(item.price * item.quantity).toFixed(0)}</p>
+          <button onclick="removeItem(${idx})" class="mt-2 text-red-400 hover:text-red-300 transition-colors text-xs">Remove</button>
+        </div>
+      </div>`);
+  });
+
+  document.getElementById('summary-subtotal').textContent = 'Rs ' + subtotal.toFixed(0);
+  document.getElementById('summary-delivery').textContent = 'Rs 0';
+  document.getElementById('summary-total').textContent = 'Rs ' + subtotal.toFixed(0);
+  document.getElementById('modal-total').textContent = 'Rs ' + subtotal.toFixed(0);
+}
+
+function changeQty(idx, delta) {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  cart[idx].quantity = Math.max(1, cart[idx].quantity + delta);
+  localStorage.setItem('mhq_cart', JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+}
+
+function removeItem(idx) {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  cart.splice(idx, 1);
+  localStorage.setItem('mhq_cart', JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+}
+
+function showCheckout() {
+  document.getElementById('checkout-modal').classList.remove('hidden');
+}
+
+async function placeOrder(e) {
+  e.preventDefault();
+  const btn = document.getElementById('place-btn');
+  btn.textContent = 'Placing Order...';
+  btn.disabled = true;
+
+  const form = e.target;
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+
+  const customerDetails = {
+    fullName: form.fullName.value,
+    phoneNo: form.phoneNo.value,
+    houseNo: form.houseNo.value,
+    streetNameNo: form.streetNameNo.value,
+    areaName: form.areaName.value,
+    city: form.city.value,
+    province: form.province.value,
+    famousPlace: form.famousPlace.value,
+    email: form.email.value,
+  };
+
+  const products = cart.map(i => ({ productId: i.id, quantity: i.quantity }));
+
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerDetails, products })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.removeItem('mhq_cart');
+      updateCartCount();
+      document.getElementById('checkout-modal').classList.add('hidden');
+      document.getElementById('success-modal').classList.remove('hidden');
+    } else {
+      alert(data.message || 'Error placing order. Please try again.');
+      btn.textContent = 'Place Order';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+    btn.textContent = 'Place Order';
+    btn.disabled = false;
+  }
+}
+
+renderCart();
+</script>

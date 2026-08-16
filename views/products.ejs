@@ -1,0 +1,111 @@
+<section class="py-24 px-4 max-w-7xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">All <span class="text-amber-400">Products</span></h1>
+    <p class="text-zinc-400">Browse our complete collection</p>
+  </div>
+
+  <!-- Category Filter -->
+  <div class="flex flex-wrap gap-3 mb-8" id="cat-filter">
+    <button onclick="filterCat('all')" class="cat-btn active-cat px-5 py-2 rounded-full border border-amber-500 bg-amber-500/20 text-amber-400 text-sm font-medium transition-all" data-cat="all">All</button>
+    <% categories.forEach(c => { %>
+    <button onclick="filterCat('<%= c._id %>')" class="cat-btn px-5 py-2 rounded-full border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400 text-sm font-medium transition-all" data-cat="<%= c._id %>"><%= c.name %></button>
+    <% }) %>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" id="products-grid">
+    <% products.forEach(p => { %>
+    <div class="product-card bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/10 cursor-pointer group"
+         onclick="window.location='/product/<%= p._id %>'"
+         data-cat="<%= p.category ? p.category._id : '' %>"
+         data-id="<%= p._id %>">
+      <div class="relative aspect-square overflow-hidden bg-zinc-800">
+        <% if (p.images && p.images.length > 0) { %>
+        <img src="<%= p.images[0] %>" alt="<%= p.name %>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy"/>
+        <% } else { %>
+        <div class="w-full h-full flex items-center justify-center text-zinc-600">
+          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <% } %>
+        <% if (p.isOutOfStock) { %><div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Out of Stock</div><% } else if (p.isLowInStock) { %><div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Low Stock</div><% } %>
+        <% if (p.hasDiscount && p.discountPercent > 0) { %><div class="absolute top-2 right-2 bg-amber-500 text-black text-xs px-2 py-0.5 rounded-full font-bold"><%= p.discountPercent %>% OFF</div><% } %>
+      </div>
+      <div class="p-3">
+        <p class="text-xs text-amber-500/70 font-medium mb-1"><%= p.category ? p.category.name : 'Uncategorized' %></p>
+        <h3 class="text-sm font-semibold text-white line-clamp-2 mb-2"><%= p.name %></h3>
+        <div class="flex items-center justify-between">
+          <div>
+            <% if (p.hasDiscount && p.discountPercent > 0) { %>
+            <p class="text-amber-400 font-bold text-sm">Rs <%= (p.price - (p.price * p.discountPercent / 100)).toFixed(0) %></p>
+            <p class="text-zinc-500 text-xs line-through">Rs <%= p.price %></p>
+            <% } else { %>
+            <p class="text-amber-400 font-bold text-sm">Rs <%= p.price %></p>
+            <% } %>
+          </div>
+          <button onclick="event.stopPropagation(); addToCartFromCard('<%= p._id %>', '<%= p.name.replace(/'/g, "\\'") %>', <%= p.hasDiscount && p.discountPercent > 0 ? (p.price - (p.price * p.discountPercent / 100)).toFixed(0) : p.price %>, '<%= p.images && p.images.length > 0 ? p.images[0] : "" %>')"
+            class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium"
+            <%= p.isOutOfStock ? 'disabled' : '' %>>Add</button>
+        </div>
+        <% if (p.isFreeDelivery) { %><p class="text-emerald-400 text-xs mt-1 font-medium">✓ Free Delivery</p><% } else if (p.deliveryCharges > 0) { %><p class="text-zinc-500 text-xs mt-1">Delivery: Rs <%= p.deliveryCharges %></p><% } %>
+      </div>
+    </div>
+    <% }) %>
+    <% if (products.length === 0) { %>
+    <div class="col-span-4 text-center py-20 text-zinc-500">No products available yet.</div>
+    <% } %>
+  </div>
+</section>
+
+<div id="cart-toast" class="fixed bottom-6 right-6 bg-amber-600 text-white px-5 py-3 rounded-xl shadow-2xl font-medium text-sm z-50 translate-y-20 opacity-0 transition-all duration-300">✓ Added to cart!</div>
+
+<script>
+function filterCat(catId) {
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.classList.remove('active-cat','bg-amber-500/20','text-amber-400','border-amber-500');
+    btn.classList.add('border-zinc-700','text-zinc-300');
+  });
+  const active = document.querySelector(`.cat-btn[data-cat="${catId}"]`);
+  if (active) { active.classList.add('active-cat','bg-amber-500/20','text-amber-400','border-amber-500'); active.classList.remove('border-zinc-700','text-zinc-300'); }
+  document.querySelectorAll('.product-card').forEach(card => {
+    card.style.display = (catId === 'all' || card.dataset.cat === catId) ? '' : 'none';
+  });
+}
+function addToCartFromCard(id, name, price, image) {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.quantity += 1;
+  else cart.push({ id, name, price: parseFloat(price), image, quantity: 1 });
+  localStorage.setItem('mhq_cart', JSON.stringify(cart));
+  updateCartCount();
+  const toast = document.getElementById('cart-toast');
+  toast.classList.remove('translate-y-20','opacity-0'); toast.classList.add('translate-y-0','opacity-100');
+  setTimeout(() => { toast.classList.add('translate-y-20','opacity-0'); toast.classList.remove('translate-y-0','opacity-100'); }, 2000);
+}
+</script>
+
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+const channel = pusher.subscribe('mhq-reseller');
+channel.bind('product:new', (data) => {
+  const grid = document.getElementById('products-grid');
+  const catId = data.category ? (data.category._id || data.category) : '';
+  const catName = data.category ? (data.category.name || '') : 'Uncategorized';
+  const discountedPrice = data.hasDiscount && data.discountPercent > 0 ? (data.price - (data.price * data.discountPercent / 100)).toFixed(0) : data.price;
+  const imgHtml = data.images && data.images.length ? `<img src="${data.images[0]}" alt="${data.name}" class="w-full h-full object-cover" loading="lazy"/>` : `<div class="w-full h-full flex items-center justify-center text-zinc-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
+  const html = `<div class="product-card bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:scale-[1.02] cursor-pointer group" onclick="window.location='/product/${data._id}'" data-cat="${catId}" data-id="${data._id}">
+    <div class="relative aspect-square overflow-hidden bg-zinc-800">${imgHtml}${data.hasDiscount && data.discountPercent > 0 ? `<div class="absolute top-2 right-2 bg-amber-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">${data.discountPercent}% OFF</div>` : ''}</div>
+    <div class="p-3"><p class="text-xs text-amber-500/70 font-medium mb-1">${catName}</p><h3 class="text-sm font-semibold text-white line-clamp-2 mb-2">${data.name}</h3>
+    <div class="flex items-center justify-between"><div><p class="text-amber-400 font-bold text-sm">Rs ${discountedPrice}</p></div>
+    <button onclick="event.stopPropagation(); addToCartFromCard('${data._id}','${data.name.replace(/'/g,"\\'")}',${discountedPrice},'${data.images && data.images.length ? data.images[0] : ''}')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium">Add</button></div></div></div>`;
+  grid.insertAdjacentHTML('afterbegin', html);
+});
+channel.bind('product:updated', (data) => {
+  const el = document.querySelector(`[data-id="${data._id}"]`);
+  if (el) { window.location.reload(); }
+});
+channel.bind('product:deleted', (data) => {
+  const el = document.querySelector(`[data-id="${data.id}"]`);
+  if (el) el.remove();
+});
+</script>

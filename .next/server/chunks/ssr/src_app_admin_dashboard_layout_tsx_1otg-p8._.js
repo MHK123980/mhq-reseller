@@ -1,0 +1,3 @@
+module.exports=[37559,a=>{"use strict";a.s(["default",()=>b]);let b=(0,a.i(11857).registerClientReference)(function(){throw Error("Attempted to call the default export of [project]/src/app/admin/dashboard/layout.tsx from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.")},"[project]/src/app/admin/dashboard/layout.tsx","default")},83220,a=>{"use strict";var b=a.i(37559);a.n(b)},9448,function(a){a.n(a.i(83220))}];
+
+//# sourceMappingURL=src_app_admin_dashboard_layout_tsx_1otg-p8._.js.map

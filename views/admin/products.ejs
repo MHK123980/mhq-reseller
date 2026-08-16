@@ -1,0 +1,203 @@
+<div class="p-6 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-1">Products Management</h1>
+      <p class="text-zinc-400 text-sm">Add, update, or remove products</p>
+    </div>
+    <button onclick="openModal('add')" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 text-sm">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add Product
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="admin-products-grid">
+    <% products.forEach(p => { %>
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col group" id="product-card-<%= p._id %>">
+      <div class="relative aspect-[4/3] bg-zinc-800 border-b border-zinc-800">
+        <% if (p.images && p.images.length > 0) { %>
+        <img src="<%= p.images[0] %>" class="w-full h-full object-cover" loading="lazy" />
+        <% } else { %>
+        <div class="w-full h-full flex items-center justify-center text-zinc-600"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+        <% } %>
+        <div class="absolute top-2 right-2 flex gap-1">
+          <button onclick="toggleFeatured('<%= p._id %>')" class="p-1.5 rounded-full bg-black/60 hover:bg-black text-white transition-colors <%= p.isFeatured ? 'text-amber-400' : '' %>" title="Toggle Featured">⭐</button>
+          <button onclick="toggleStock('<%= p._id %>')" class="p-1.5 rounded-full bg-black/60 hover:bg-black text-white transition-colors <%= p.isOutOfStock ? 'text-red-500' : 'text-green-500' %>" title="Toggle Stock">📦</button>
+        </div>
+      </div>
+      <div class="p-4 flex-1 flex flex-col">
+        <p class="text-xs text-amber-500 mb-1"><%= p.category ? p.category.name : 'Uncategorized' %></p>
+        <h3 class="text-sm font-semibold text-white mb-2 line-clamp-2"><%= p.name %></h3>
+        <p class="text-amber-400 font-bold text-sm mb-4 mt-auto">Rs <%= p.price %></p>
+        
+        <div class="flex gap-2">
+          <button onclick="openModal('edit', '<%= JSON.stringify(p).replace(/'/g, "&#39;").replace(/\\/g, "\\\\") %>')" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2 rounded-xl text-xs transition-colors">Edit</button>
+          <button onclick="deleteProduct('<%= p._id %>')" class="flex-1 bg-red-900/30 hover:bg-red-900/50 text-red-400 font-medium py-2 rounded-xl text-xs transition-colors">Delete</button>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="product-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+  <div class="bg-zinc-950 border border-zinc-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h2 id="modal-title" class="text-xl font-bold text-white">Add Product</h2>
+      <button onclick="closeModal()" class="text-zinc-400 hover:text-white transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="product-form" onsubmit="saveProduct(event)" class="space-y-4">
+      <input type="hidden" id="p-id" />
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-sm text-zinc-400 mb-1">Name *</label>
+          <input type="text" id="p-name" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" />
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm text-zinc-400 mb-1">Description *</label>
+          <textarea id="p-desc" required rows="3" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Price (Rs) *</label>
+          <input type="number" id="p-price" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-zinc-400 mb-1">Category *</label>
+          <select id="p-cat" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors">
+            <option value="">Select Category</option>
+            <% categories.forEach(c => { %>
+            <option value="<%= c._id %>"><%= c.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm text-zinc-400 mb-1">Image URL (Optional)</label>
+          <input type="text" id="p-image" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="https://..." />
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <p class="text-sm text-white font-medium">Featured Product</p>
+            <p class="text-xs text-zinc-500">Show on homepage</p>
+          </div>
+          <input type="checkbox" id="p-featured" class="w-5 h-5 accent-amber-500" />
+        </div>
+
+        <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
+          <div>
+            <p class="text-sm text-white font-medium">Out of Stock</p>
+            <p class="text-xs text-zinc-500">Disable purchasing</p>
+          </div>
+          <input type="checkbox" id="p-oos" class="w-5 h-5 accent-amber-500" />
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-zinc-800 flex justify-end gap-3">
+        <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-zinc-400 hover:text-white font-medium text-sm transition-colors">Cancel</button>
+        <button type="submit" id="save-btn" class="bg-amber-600 hover:bg-amber-500 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition-colors">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openModal(mode, pData = null) {
+  const modal = document.getElementById('product-modal');
+  const title = document.getElementById('modal-title');
+  const form = document.getElementById('product-form');
+  form.reset();
+
+  if (mode === 'edit' && pData) {
+    title.textContent = 'Edit Product';
+    const p = JSON.parse(pData);
+    document.getElementById('p-id').value = p._id;
+    document.getElementById('p-name').value = p.name;
+    document.getElementById('p-desc').value = p.description;
+    document.getElementById('p-price').value = p.price;
+    if (p.category) document.getElementById('p-cat').value = p.category._id || p.category;
+    if (p.images && p.images.length > 0) document.getElementById('p-image').value = p.images[0];
+    document.getElementById('p-featured').checked = p.isFeatured;
+    document.getElementById('p-oos').checked = p.isOutOfStock;
+  } else {
+    title.textContent = 'Add Product';
+    document.getElementById('p-id').value = '';
+  }
+  modal.classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('product-modal').classList.add('hidden');
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const id = document.getElementById('p-id').value;
+  const isEdit = !!id;
+  const url = isEdit ? `/api/products/${id}` : '/api/products';
+  const method = isEdit ? 'PUT' : 'POST';
+
+  const body = {
+    name: document.getElementById('p-name').value,
+    description: document.getElementById('p-desc').value,
+    price: parseFloat(document.getElementById('p-price').value),
+    category: document.getElementById('p-cat').value,
+    images: document.getElementById('p-image').value ? [document.getElementById('p-image').value] : [],
+    isFeatured: document.getElementById('p-featured').checked,
+    isOutOfStock: document.getElementById('p-oos').checked
+  };
+
+  try {
+    const res = await fetch(url, {
+      method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      closeModal();
+      // Will be updated via Pusher
+    } else {
+      const data = await res.json();
+      alert(data.message || 'Error saving product');
+    }
+  } catch {
+    alert('Network error');
+  } finally {
+    btn.textContent = 'Save Product';
+    btn.disabled = false;
+  }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Are you sure you want to delete this product?')) return;
+  try {
+    await fetch(`/api/products/${id}`, { method: 'DELETE' });
+  } catch(e) { alert('Error deleting product'); }
+}
+
+async function toggleFeatured(id) {
+  try { await fetch(`/api/products/${id}/toggle-featured`, { method: 'PATCH' }); } catch(e){}
+}
+async function toggleStock(id) {
+  try { await fetch(`/api/products/${id}/toggle-out-of-stock`, { method: 'PATCH' }); } catch(e){}
+}
+</script>
+
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+const channel = pusher.subscribe('mhq-reseller');
+
+channel.bind('product:new', () => window.location.reload());
+channel.bind('product:updated', () => window.location.reload());
+channel.bind('product:deleted', () => window.location.reload());
+</script>

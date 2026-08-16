@@ -1,0 +1,61 @@
+<section class="py-24 px-4 max-w-7xl mx-auto">
+  <div class="mb-8">
+    <div class="inline-block border border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-4 tracking-widest uppercase">⭐ Hand-Picked</div>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">Featured <span class="text-amber-400">Products</span></h1>
+    <p class="text-zinc-400">Our top-rated and most popular items</p>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" id="featured-grid">
+    <% products.forEach(p => { %>
+    <div class="product-card bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/10 cursor-pointer group"
+         onclick="window.location='/product/<%= p._id %>'"
+         data-id="<%= p._id %>">
+      <div class="relative aspect-square overflow-hidden bg-zinc-800">
+        <% if (p.images && p.images.length > 0) { %>
+        <img src="<%= p.images[0] %>" alt="<%= p.name %>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy"/>
+        <% } else { %>
+        <div class="w-full h-full flex items-center justify-center text-zinc-600"><svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+        <% } %>
+        <div class="absolute top-2 left-2 bg-amber-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">⭐ Featured</div>
+        <% if (p.hasDiscount && p.discountPercent > 0) { %><div class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold"><%= p.discountPercent %>% OFF</div><% } %>
+      </div>
+      <div class="p-3">
+        <p class="text-xs text-amber-500/70 font-medium mb-1"><%= p.category ? p.category.name : 'Uncategorized' %></p>
+        <h3 class="text-sm font-semibold text-white line-clamp-2 mb-2"><%= p.name %></h3>
+        <div class="flex items-center justify-between">
+          <div>
+            <% if (p.hasDiscount && p.discountPercent > 0) { %>
+            <p class="text-amber-400 font-bold text-sm">Rs <%= (p.price - (p.price * p.discountPercent / 100)).toFixed(0) %></p>
+            <p class="text-zinc-500 text-xs line-through">Rs <%= p.price %></p>
+            <% } else { %>
+            <p class="text-amber-400 font-bold text-sm">Rs <%= p.price %></p>
+            <% } %>
+          </div>
+          <button onclick="event.stopPropagation(); addToCartFromCard('<%= p._id %>', '<%= p.name.replace(/'/g, "\\'") %>', <%= p.hasDiscount && p.discountPercent > 0 ? (p.price - (p.price * p.discountPercent / 100)).toFixed(0) : p.price %>, '<%= p.images && p.images.length > 0 ? p.images[0] : "" %>')"
+            class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-full transition-all font-medium">Add</button>
+        </div>
+        <% if (p.isFreeDelivery) { %><p class="text-emerald-400 text-xs mt-1 font-medium">✓ Free Delivery</p><% } %>
+      </div>
+    </div>
+    <% }) %>
+    <% if (products.length === 0) { %>
+    <div class="col-span-4 text-center py-20 text-zinc-500">No featured products yet.</div>
+    <% } %>
+  </div>
+</section>
+
+<div id="cart-toast" class="fixed bottom-6 right-6 bg-amber-600 text-white px-5 py-3 rounded-xl shadow-2xl font-medium text-sm z-50 translate-y-20 opacity-0 transition-all duration-300">✓ Added to cart!</div>
+
+<script>
+function addToCartFromCard(id, name, price, image) {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.quantity += 1;
+  else cart.push({ id, name, price: parseFloat(price), image, quantity: 1 });
+  localStorage.setItem('mhq_cart', JSON.stringify(cart));
+  updateCartCount();
+  const toast = document.getElementById('cart-toast');
+  toast.classList.remove('translate-y-20','opacity-0'); toast.classList.add('translate-y-0','opacity-100');
+  setTimeout(() => { toast.classList.add('translate-y-20','opacity-0'); toast.classList.remove('translate-y-0','opacity-100'); }, 2000);
+}
+</script>
