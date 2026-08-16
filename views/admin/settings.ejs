@@ -1,0 +1,54 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-white mb-1">Settings</h1>
+    <p class="text-zinc-400 text-sm">Manage global store configurations</p>
+  </div>
+
+  <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+    <h2 class="text-lg font-bold text-amber-500 mb-4 border-b border-zinc-800 pb-2">Delivery Settings</h2>
+    
+    <form id="settings-form" onsubmit="saveSettings(event)">
+      <div class="mb-6">
+        <label class="block text-sm text-zinc-400 mb-2">Estimated Delivery Time</label>
+        <input type="text" id="estimatedDeliveryTime" value="<%= estimatedDeliveryTime %>" class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2 focus:border-amber-500 outline-none transition-colors" placeholder="e.g. 3-5 Days" required />
+        <p class="text-xs text-zinc-500 mt-2">This will be shown to customers in the order confirmation message.</p>
+      </div>
+
+      <button type="submit" id="save-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors">
+        Save Settings
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+async function saveSettings(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: 'estimatedDeliveryTime',
+        value: document.getElementById('estimatedDeliveryTime').value
+      })
+    });
+    const data = await res.json();
+    if(res.ok && data.success) {
+      alert('Settings saved successfully!');
+    } else {
+      alert('Failed to save settings.');
+    }
+  } catch(err) {
+    alert('Network error while saving settings.');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+</script>

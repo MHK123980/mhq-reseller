@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const Product = require('../models/Product');
 const Category = require('../models/Category');
+const Setting = require('../models/Setting');
 const { protect } = require('../middleware/auth');
 
 const PUSHER_KEY = process.env.PUSHER_KEY || "f713f77ab9e98a84ccf7";
@@ -39,8 +40,10 @@ router.get('/product/:id', async (req, res) => {
     title: product.name + ' - MHQ Reseller' });
 });
 
-router.get('/cart', (req, res) => {
+router.get('/cart', async (req, res) => {
+  const estTimeSetting = await Setting.findOne({ key: 'estimatedDeliveryTime' });
   res.render('cart', {
+    estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     title: 'Cart - MHQ Reseller' });
 });
@@ -54,6 +57,14 @@ router.get('/admin/dashboard', protect, (req, res) => {
   res.render('admin/dashboard', { layout: 'layouts/admin',
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Dashboard - MHQ Admin' });
+});
+
+router.get('/admin/dashboard/settings', protect, async (req, res) => {
+  const estTimeSetting = await Setting.findOne({ key: 'estimatedDeliveryTime' });
+  res.render('admin/settings', { layout: 'layouts/admin',
+    estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
+    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+    user: req.user, title: 'Settings - MHQ Admin' });
 });
 
 router.get('/admin/dashboard/products', protect, async (req, res) => {

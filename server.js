@@ -55,6 +55,18 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 
+const Setting = require('./models/Setting');
+const { protectAPI } = require('./middleware/auth');
+app.post('/api/settings', protectAPI, async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    await Setting.findOneAndUpdate({ key }, { value }, { upsert: true, new: true });
+    res.json({ success: true });
+  } catch(e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 // Image upload proxy - avoids browser CORS issues with ImgBB
 app.post('/api/upload', async (req, res) => {
   try {

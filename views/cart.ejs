@@ -106,7 +106,11 @@
         <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
       </div>
       <h2 class="text-2xl font-bold text-white mb-2">Order Placed! 🎉</h2>
-      <p class="text-zinc-400 mb-6 text-sm">Your order has been received. We'll contact you soon for confirmation.</p>
+      <p class="text-zinc-400 mb-2 text-sm">Your order has been received. We'll contact you soon for confirmation.</p>
+      <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-6">
+        <p class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-1">Estimated Delivery Time</p>
+        <p class="text-white font-bold"><%= estimatedDeliveryTime %></p>
+      </div>
       <a href="/" class="block bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-full transition-all text-sm">Back to Home</a>
     </div>
   </div>
