@@ -213,7 +213,10 @@ async function placeOrder(e) {
   const products = cart.map(i => ({
     product: i.id,
     quantity: i.quantity,
-    priceAtPurchase: i.price
+    priceAtPurchase: i.price,
+    selectedVariant: i.selectedVariant || '',
+    deliveryCharges: i.deliveryCharges || 0,
+    isFreeDelivery: i.isFreeDelivery || false
   }));
 
   try {

@@ -43,7 +43,10 @@
         <div class="space-y-2">
           <% o.products.slice(0,2).forEach(p => { %>
           <div class="flex justify-between text-xs">
-            <span class="text-zinc-300 truncate pr-2"><%= p.quantity %>x <%= p.product ? p.product.name : 'Unknown Product' %></span>
+            <span class="text-zinc-300 truncate pr-2">
+              <%= p.quantity %>x <%= p.product ? p.product.name : 'Unknown Product' %>
+              <%= p.selectedVariant ? ` - ${p.selectedVariant}` : '' %>
+            </span>
             <span class="text-zinc-400 flex-shrink-0">Rs <%= p.priceAtPurchase * p.quantity %></span>
           </div>
           <% }) %>
@@ -194,44 +197,70 @@ async function updateOrderStatus(id, status) {
 
 function viewOrderDetails(b64Data) {
   const o = JSON.parse(atob(b64Data));
-  let itemsHtml = o.products.map(p => `
-    <div class="flex justify-between items-center bg-zinc-800 p-2 rounded-lg">
-      <div class="flex items-center gap-3">
-        <img src="${p.product && p.product.images && p.product.images.length ? p.product.images[0] : ''}" class="w-12 h-12 rounded bg-zinc-800 object-cover" />
-        <div class="flex-1">
-          <p class="text-sm font-medium text-white">${p.product ? p.product.name : 'Unknown Product'}</p>
-          ${p.selectedVariant ? `<p class="text-xs text-amber-500 font-medium">${p.selectedVariant}</p>` : ''}
-          <p class="text-xs text-zinc-500">Qty: ${p.quantity} × Rs ${p.priceAtPurchase}</p>
+  let subtotal = 0;
+  let totalDC = 0;
+
+  let itemsHtml = o.products.map(p => {
+    const pSubtotal = p.quantity * p.priceAtPurchase;
+    subtotal += pSubtotal;
+    const dc = p.isFreeDelivery ? 0 : (p.deliveryCharges || 0);
+    totalDC += dc;
+
+    return `
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-800 p-3 rounded-xl gap-4">
+        <div class="flex items-center gap-4">
+          <img src="${p.product && p.product.images && p.product.images.length ? p.product.images[0] : ''}" class="w-16 h-16 rounded-lg bg-zinc-700 object-cover" />
+          <div class="flex-1">
+            <p class="text-sm font-bold text-white">${p.product ? p.product.name : 'Unknown Product'}</p>
+            ${p.selectedVariant ? `<p class="text-xs text-amber-500 font-medium mb-1">${p.selectedVariant}</p>` : ''}
+            <p class="text-xs text-zinc-400">Qty: ${p.quantity} × Rs ${p.priceAtPurchase}</p>
+            ${p.isFreeDelivery ? `<p class="text-[10px] text-emerald-400 font-medium mt-1">Free Delivery</p>` : (dc > 0 ? `<p class="text-[10px] text-zinc-500 font-medium mt-1">Delivery: Rs ${dc}</p>` : '')}
+          </div>
+        </div>
+        <div class="text-left sm:text-right">
+          <p class="font-bold text-amber-400">Rs ${pSubtotal}</p>
         </div>
       </div>
-      <p class="font-bold text-amber-400">Rs ${p.quantity * p.priceAtPurchase}</p>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   document.getElementById('view-order-content').innerHTML = `
-    <div class="grid grid-cols-2 gap-6 border-b border-zinc-800 pb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-zinc-800 pb-6">
       <div>
-        <h3 class="text-amber-500 font-bold mb-2">Customer Info</h3>
-        <p><span class="text-zinc-500">Full Name:</span> <span class="text-white">${o.customerDetails.fullName}</span></p>
-        <p><span class="text-zinc-500">Phone No:</span> <span class="text-white">${o.customerDetails.phoneNo}</span></p>
-        <p><span class="text-zinc-500">Email:</span> <span class="text-white">${o.customerDetails.email || '-'}</span></p>
+        <h3 class="text-amber-500 font-bold mb-2 text-sm uppercase tracking-wider">Customer Info</h3>
+        <p class="text-sm mb-1"><span class="text-zinc-500">Name:</span> <span class="text-white font-medium">${o.customerDetails.fullName}</span></p>
+        <p class="text-sm mb-1"><span class="text-zinc-500">Phone:</span> <span class="text-white font-medium">${o.customerDetails.phoneNo}</span></p>
+        <p class="text-sm"><span class="text-zinc-500">Email:</span> <span class="text-white font-medium">${o.customerDetails.email || '-'}</span></p>
       </div>
       <div>
-        <h3 class="text-amber-500 font-bold mb-2">Delivery Address</h3>
-        <p><span class="text-zinc-500">House No:</span> <span class="text-white">${o.customerDetails.houseNo}</span></p>
-        <p><span class="text-zinc-500">Street:</span> <span class="text-white">${o.customerDetails.streetNameNo}</span></p>
-        <p><span class="text-zinc-500">Area:</span> <span class="text-white">${o.customerDetails.areaName}</span></p>
-        <p><span class="text-zinc-500">City:</span> <span class="text-white">${o.customerDetails.city}, ${o.customerDetails.province}</span></p>
-        <p><span class="text-zinc-500">Landmark:</span> <span class="text-white">${o.customerDetails.famousPlace || '-'}</span></p>
+        <h3 class="text-amber-500 font-bold mb-2 text-sm uppercase tracking-wider">Delivery Address</h3>
+        <p class="text-sm mb-1 text-white">${o.customerDetails.houseNo}, ${o.customerDetails.streetNameNo}</p>
+        <p class="text-sm mb-1 text-white">${o.customerDetails.areaName}</p>
+        <p class="text-sm mb-1 text-white">${o.customerDetails.city}, ${o.customerDetails.province}</p>
+        ${o.customerDetails.famousPlace ? `<p class="text-sm text-zinc-400">Landmark: ${o.customerDetails.famousPlace}</p>` : ''}
       </div>
     </div>
     
-    <div class="pt-2">
-      <h3 class="text-amber-500 font-bold mb-4">Order Items</h3>
-      <div class="space-y-2">${itemsHtml}</div>
+    <div class="pt-4">
+      <h3 class="text-amber-500 font-bold mb-4 text-sm uppercase tracking-wider">Order Items</h3>
+      <div class="space-y-3">${itemsHtml}</div>
     </div>
-    <div class="mt-4 text-right">
-      <p class="text-lg text-white">Grand Total: <span class="font-bold text-amber-500 text-2xl ml-2">Rs ${o.totalAmount}</span></p>
+
+    <div class="mt-6 pt-4 border-t border-zinc-800 flex flex-col items-end">
+      <div class="w-full sm:w-1/2 space-y-2">
+        <div class="flex justify-between text-sm text-zinc-400">
+          <span>Subtotal</span>
+          <span>Rs ${subtotal}</span>
+        </div>
+        <div class="flex justify-between text-sm text-zinc-400">
+          <span>Total Delivery</span>
+          <span>Rs ${totalDC}</span>
+        </div>
+        <div class="flex justify-between text-lg text-white font-bold pt-2 border-t border-zinc-800">
+          <span>Grand Total</span>
+          <span class="text-amber-500">Rs ${o.totalAmount}</span>
+        </div>
+      </div>
     </div>
   `;
   document.getElementById('view-order-modal').classList.remove('hidden');
@@ -391,7 +420,10 @@ async function deleteOrder(id) {
 function createOrderCardHtml(o) {
   let productsHtml = o.products.slice(0,2).map(p => `
     <div class="flex justify-between text-xs">
-      <span class="text-zinc-300 truncate pr-2">${p.quantity}x ${p.product ? p.product.name : 'Unknown Product'}</span>
+      <span class="text-zinc-300 truncate pr-2">
+        ${p.quantity}x ${p.product ? p.product.name : 'Unknown Product'}
+        ${p.selectedVariant ? ` - ${p.selectedVariant}` : ''}
+      </span>
       <span class="text-zinc-400 flex-shrink-0">Rs ${p.priceAtPurchase * p.quantity}</span>
     </div>
   `).join('');

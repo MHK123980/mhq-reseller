@@ -309,11 +309,11 @@ async function processPdf(file, btn) {
   for (let i = 1; i <= pdf.numPages; i++) {
     btn.textContent = `PDF: Page ${i}/${pdf.numPages}...`;
     const page = await pdf.getPage(i);
-    const vp = page.getViewport({ scale: 1.5 });
+    const vp = page.getViewport({ scale: 2.5 });
     const canvas = document.createElement("canvas");
     canvas.width = vp.width; canvas.height = vp.height;
     await page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise;
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 1.0));
     const url = await uploadToImgBB(blob, `pdf_page_${i}.jpg`);
     if(url) uploadedImages.push(url);
   }

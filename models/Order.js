@@ -15,7 +15,9 @@ const orderSchema = new mongoose.Schema({
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     quantity: { type: Number, required: true, default: 1 },
     priceAtPurchase: { type: Number, required: true },
-    selectedVariant: { type: String, default: '' },  // e.g. "Color: Red" or "Size: XL, Color: Blue"
+    selectedVariant: { type: String, default: '' },
+    deliveryCharges: { type: Number, default: 0 },
+    isFreeDelivery: { type: Boolean, default: false }
   }],
   totalAmount: { type: Number, required: true },
   status: {

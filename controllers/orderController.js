@@ -16,11 +16,16 @@ const create = async (req, res) => {
     
     const formattedProducts = products.map(p => {
       totalAmount += p.priceAtPurchase * p.quantity;
+      if (!p.isFreeDelivery && p.deliveryCharges > 0) {
+        totalAmount += p.deliveryCharges;
+      }
       return {
         product: p.product,
         quantity: p.quantity,
         priceAtPurchase: p.priceAtPurchase,
-        selectedVariant: p.selectedVariant || ''
+        selectedVariant: p.selectedVariant || '',
+        deliveryCharges: p.deliveryCharges || 0,
+        isFreeDelivery: p.isFreeDelivery || false
       };
     });
     
