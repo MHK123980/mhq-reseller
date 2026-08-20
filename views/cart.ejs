@@ -146,6 +146,7 @@ function renderCart() {
         ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0 bg-zinc-800"/>` : `<div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>`}
         <div class="flex-1 min-w-0">
           <h3 class="text-white font-semibold text-sm line-clamp-2 mb-1">${item.name}</h3>
+          ${item.selectedVariant ? `<p class="text-amber-500 text-xs font-medium mb-1">${item.selectedVariant}</p>` : ''}
           <p class="text-amber-400 font-bold text-sm">Rs ${item.price}</p>
           ${item.isFreeDelivery ? '<p class="text-emerald-400 text-xs font-medium">✓ Free Delivery</p>' : item.deliveryCharges > 0 ? `<p class="text-zinc-500 text-xs">Delivery: Rs ${item.deliveryCharges}</p>` : ''}
           <div class="flex items-center gap-2 mt-2">

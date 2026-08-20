@@ -19,7 +19,8 @@ const create = async (req, res) => {
       return {
         product: p.product,
         quantity: p.quantity,
-        priceAtPurchase: p.priceAtPurchase
+        priceAtPurchase: p.priceAtPurchase,
+        selectedVariant: p.selectedVariant || ''
       };
     });
     

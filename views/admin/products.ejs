@@ -58,8 +58,9 @@
           <input type="number" id="p-delivery" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500" value="0" />
         </div>
         <div>
-          <label class="text-sm text-zinc-400 mb-1 block">Discount %</label>
-          <input type="number" id="p-discount-percent" min="0" max="100" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500" value="0" />
+          <label class="text-sm text-zinc-400 mb-1 block">Discounted Price (Rs) <span class="text-zinc-600 text-xs">– if discount enabled</span></label>
+          <input type="number" id="p-discounted-price" min="0" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-500" value="0" placeholder="Enter discounted price" oninput="previewDiscount()" />
+          <p class="text-xs text-amber-400 mt-1" id="discount-calc-preview"></p>
         </div>
       </div>
 
@@ -75,6 +76,17 @@
           <span class="text-sm text-zinc-300"><%= label %></span>
         </label>
         <% }) %>
+      </div>
+
+      <!-- Variant Builder (Optional) -->
+      <div class="border border-zinc-700 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-semibold text-white">Product Variants <span class="text-zinc-500 text-xs font-normal">(Optional — e.g. Color, Size)</span></p>
+          <button type="button" onclick="addVariantGroup()" class="text-xs bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-600/30 px-3 py-1.5 rounded-lg transition-colors font-medium">
+            + Add Variant
+          </button>
+        </div>
+        <div id="variants-container" class="space-y-3"></div>
       </div>
 
       <!-- Image Upload (Supports PDF & ZIP) -->
@@ -191,6 +203,8 @@ function openModal(mode, b64Data = null) {
   document.getElementById('product-form').reset();
   uploadedImages = [];
   renderPreviews();
+  document.getElementById('variants-container').innerHTML = '';
+  document.getElementById('discount-calc-preview').textContent = '';
   const switches = [['p-has-discount','tgl-bg-discount','tgl-dot-discount'],['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery'],['p-featured','tgl-bg-featured','tgl-dot-featured'],['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock'],['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock']];
   switches.forEach(([a,b,c]) => setSwitch(a,b,c,false));
 
@@ -203,7 +217,11 @@ function openModal(mode, b64Data = null) {
     document.getElementById('p-desc').value = p.description;
     document.getElementById('p-price').value = p.price;
     document.getElementById('p-delivery').value = p.deliveryCharges || 0;
-    document.getElementById('p-discount-percent').value = p.discountPercent || 0;
+    document.getElementById('p-discounted-price').value = p.discountedPrice || 0;
+    if (p.discountedPrice && p.price && p.hasDiscount) {
+      const pct = Math.round((p.price - p.discountedPrice) / p.price * 100);
+      document.getElementById('discount-calc-preview').textContent = pct > 0 ? `= ${pct}% OFF` : '';
+    }
     if (p.category) document.getElementById('p-cat').value = p.category._id || p.category;
     setSwitch('p-has-discount','tgl-bg-discount','tgl-dot-discount', p.hasDiscount);
     setSwitch('p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery', p.isFreeDelivery);
@@ -211,6 +229,10 @@ function openModal(mode, b64Data = null) {
     setSwitch('p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock', p.isLowInStock);
     setSwitch('p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock', p.isOutOfStock);
     if (p.images) { uploadedImages = [...p.images]; renderPreviews(); }
+    // Load existing variants
+    if (p.variants && p.variants.length > 0) {
+      p.variants.forEach(v => addVariantGroup(v));
+    }
   } else {
     document.getElementById('modal-title').textContent = 'Add New Product';
     document.getElementById('save-btn').textContent = 'Add Product';
@@ -323,13 +345,14 @@ async function saveProduct(e) {
     price: parseFloat(document.getElementById('p-price').value),
     category: document.getElementById('p-cat').value,
     deliveryCharges: parseFloat(document.getElementById('p-delivery').value || 0),
-    discountPercent: parseFloat(document.getElementById('p-discount-percent').value || 0),
+    discountedPrice: parseFloat(document.getElementById('p-discounted-price').value || 0),
     images: uploadedImages,
     hasDiscount: document.getElementById('p-has-discount').checked,
     isFreeDelivery: document.getElementById('p-free-delivery').checked,
     isFeatured: document.getElementById('p-featured').checked,
     isLowInStock: document.getElementById('p-low-stock').checked,
     isOutOfStock: document.getElementById('p-out-stock').checked,
+    variants: collectVariants(),
   };
   try {
     const res = await fetch(url, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
@@ -435,4 +458,87 @@ adminChannel.bind('product:deleted', (data) => {
     loadProducts();
   }
 });
+// --- Variant Builder Logic ---
+let variantGroupIndex = 0;
+
+function addVariantGroup(data = null) {
+  const container = document.getElementById('variants-container');
+  const gId = variantGroupIndex++;
+  const label = data ? data.label : '';
+  
+  const html = `
+    <div id="v-group-${gId}" class="bg-zinc-800/50 border border-zinc-700 rounded-lg p-3 relative">
+      <button type="button" onclick="document.getElementById('v-group-${gId}').remove()" class="absolute top-3 right-3 text-red-400 hover:text-red-300">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div class="mb-3 pr-8">
+        <label class="text-xs text-zinc-400 block mb-1">Variant Name (e.g. Color, Size)</label>
+        <input type="text" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1.5 text-white text-sm focus:border-amber-500 outline-none v-label" value="${label}" placeholder="e.g. Size" required/>
+      </div>
+      <div id="v-options-${gId}" class="space-y-2 mb-2"></div>
+      <button type="button" onclick="addVariantOption(${gId})" class="text-xs text-amber-500 hover:text-amber-400">+ Add Option</button>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', html);
+  
+  if (data && data.options) {
+    data.options.forEach(opt => addVariantOption(gId, opt));
+  } else {
+    addVariantOption(gId);
+  }
+}
+
+function addVariantOption(gId, optData = null) {
+  const container = document.getElementById(`v-options-${gId}`);
+  const optId = Math.random().toString(36).substr(2, 9);
+  const name = optData ? optData.name : '';
+  const price = optData && optData.extraPrice ? optData.extraPrice : 0;
+  
+  const html = `
+    <div id="v-opt-${optId}" class="flex items-center gap-2">
+      <input type="text" class="flex-1 bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1 text-white text-sm focus:border-amber-500 outline-none v-opt-name" value="${name}" placeholder="Option (e.g. XL, Red)" required/>
+      <div class="relative w-28">
+        <span class="absolute left-2 top-1.5 text-zinc-500 text-xs">+Rs</span>
+        <input type="number" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg pl-8 pr-2 py-1 text-white text-sm focus:border-amber-500 outline-none v-opt-price" value="${price}" placeholder="0"/>
+      </div>
+      <button type="button" onclick="document.getElementById('v-opt-${optId}').remove()" class="text-red-400 hover:text-red-300 p-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </button>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+function collectVariants() {
+  const groups = [];
+  document.querySelectorAll('[id^="v-group-"]').forEach(g => {
+    const label = g.querySelector('.v-label').value.trim();
+    if (!label) return;
+    const options = [];
+    g.querySelectorAll('[id^="v-opt-"]').forEach(opt => {
+      const name = opt.querySelector('.v-opt-name').value.trim();
+      const extraPrice = parseFloat(opt.querySelector('.v-opt-price').value) || 0;
+      if (name) options.push({ name, extraPrice });
+    });
+    if (options.length > 0) groups.push({ label, options });
+  });
+  return groups;
+}
+
+function previewDiscount() {
+  const p = parseFloat(document.getElementById('p-price').value) || 0;
+  const dp = parseFloat(document.getElementById('p-discounted-price').value) || 0;
+  const preview = document.getElementById('discount-calc-preview');
+  
+  if (document.getElementById('p-has-discount').checked && dp > 0 && p > dp) {
+    const pct = Math.round((p - dp) / p * 100);
+    preview.textContent = `= ${pct}% OFF`;
+  } else {
+    preview.textContent = '';
+  }
+}
+
+// Watch base price changes to update discount preview
+document.getElementById('p-price').addEventListener('input', previewDiscount);
+document.getElementById('p-has-discount').addEventListener('change', previewDiscount);
 </script>
