@@ -4,16 +4,29 @@
       <h1 class="text-2xl font-bold text-white mb-1">Orders Management</h1>
       <p class="text-zinc-400 text-sm">View and update customer orders</p>
     </div>
-    <button onclick="openAddOrderModal()" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 text-sm">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-      Add Order
-    </button>
+    <div class="flex items-center gap-3 w-full sm:w-auto">
+      <button onclick="bulkDeleteOrders()" id="bulk-delete-btn" class="hidden px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors text-sm">
+        Delete Selected
+      </button>
+      <button onclick="openAddOrderModal()" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 text-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Add Order
+      </button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 mb-4" id="select-all-container">
+    <input type="checkbox" id="select-all-orders" onchange="toggleSelectAllOrders(this.checked)" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 accent-amber-500 cursor-pointer" />
+    <label for="select-all-orders" class="text-sm text-zinc-400 cursor-pointer">Select All Orders</label>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="orders-grid">
     <% orders.forEach(o => { %>
-    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col" id="order-card-<%= o._id %>">
-      <div class="flex items-start justify-between mb-4 border-b border-zinc-800 pb-4">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-5 flex flex-col relative" id="order-card-<%= o._id %>">
+      <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+        <input type="checkbox" class="order-select-cb w-4 h-4 rounded border-zinc-500 bg-zinc-800 accent-amber-500 cursor-pointer" value="<%= o._id %>" onchange="updateBulkDeleteOrdersBtn()" />
+      </div>
+      <div class="flex items-start justify-between mb-4 border-b border-zinc-800 pb-4 mt-2">
         <div>
           <p class="text-xs text-zinc-500 mb-1">Order ID</p>
           <p class="text-sm font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md inline-block">#<%= o._id.toString().slice(-6) %></p>
@@ -407,12 +420,62 @@ async function deleteOrder(id) {
     if(res.ok) {
       const card = document.getElementById('order-card-' + id);
       if(card) card.remove();
-      // Remove empty state if any? The grid might become empty.
     } else {
       alert("Error deleting order");
     }
   } catch(e) {
     alert("Network error");
+  }
+}
+
+function toggleSelectAllOrders(checked) {
+  document.querySelectorAll('.order-select-cb').forEach(cb => cb.checked = checked);
+  updateBulkDeleteOrdersBtn();
+}
+
+function updateBulkDeleteOrdersBtn() {
+  const checked = document.querySelectorAll('.order-select-cb:checked');
+  const btn = document.getElementById('bulk-delete-btn');
+  if (checked.length > 0) {
+    btn.classList.remove('hidden');
+    btn.textContent = `Delete Selected (${checked.length})`;
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+async function bulkDeleteOrders() {
+  const checked = document.querySelectorAll('.order-select-cb:checked');
+  if (checked.length === 0) return;
+  if (!confirm(`Are you sure you want to delete ${checked.length} orders?`)) return;
+  
+  const ids = Array.from(checked).map(cb => cb.value);
+  const btn = document.getElementById('bulk-delete-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Deleting...';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch('/api/orders/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (res.ok) {
+      ids.forEach(id => {
+        const card = document.getElementById('order-card-' + id);
+        if(card) card.remove();
+      });
+      document.getElementById('select-all-orders').checked = false;
+      updateBulkDeleteOrdersBtn();
+    } else {
+      const data = await res.json();
+      alert(data.message || 'Error deleting orders');
+    }
+  } catch(e) { alert('Network error'); }
+  finally {
+    btn.disabled = false;
+    btn.textContent = origText;
   }
 }
 
@@ -439,8 +502,11 @@ function createOrderCardHtml(o) {
   if (o.status === 'Canceled') statusColor = 'text-red-400';
   
   return `
-    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col" id="order-card-${o._id}">
-      <div class="flex items-start justify-between mb-4 border-b border-zinc-800 pb-4">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-5 flex flex-col relative" id="order-card-${o._id}">
+      <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+        <input type="checkbox" class="order-select-cb w-4 h-4 rounded border-zinc-500 bg-zinc-800 accent-amber-500 cursor-pointer" value="${o._id}" onchange="updateBulkDeleteOrdersBtn()" />
+      </div>
+      <div class="flex items-start justify-between mb-4 border-b border-zinc-800 pb-4 mt-2">
         <div>
           <p class="text-xs text-zinc-500 mb-1">Order ID</p>
           <p class="text-sm font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md inline-block">#${o._id.toString().slice(-6)}</p>

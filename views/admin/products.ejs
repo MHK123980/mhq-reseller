@@ -1,12 +1,26 @@
 <div class="max-w-7xl mx-auto">
-  <div class="flex items-center justify-between mb-8">
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
     <div>
       <h1 class="text-3xl font-bold text-white mb-1">Products</h1>
       <p class="text-zinc-400 text-sm" id="products-count">Loading...</p>
     </div>
-    <button onclick="openModal('add')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors">
-      + Add Product
-    </button>
+    <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
+      <div class="relative w-full md:w-64">
+        <input type="text" id="product-search-input" onkeyup="filterAdminProducts()" placeholder="Search products..." class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2 text-sm focus:border-amber-500 outline-none" />
+        <svg class="w-4 h-4 text-zinc-500 absolute right-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+      <button onclick="bulkDeleteProducts()" id="bulk-delete-btn" class="hidden px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors">
+        Delete Selected
+      </button>
+      <button onclick="openModal('add')" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-colors">
+        + Add Product
+      </button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 mb-4 hidden" id="select-all-container">
+    <input type="checkbox" id="select-all-products" onchange="toggleSelectAllProducts(this.checked)" class="w-4 h-4 rounded border-zinc-700 bg-zinc-800 accent-amber-500 cursor-pointer" />
+    <label for="select-all-products" class="text-sm text-zinc-400 cursor-pointer">Select All</label>
   </div>
 
   <!-- Products grid will be rendered by JS -->
@@ -129,16 +143,27 @@ function renderProductCard(p) {
     p.isOutOfStock ? `<span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded shadow">✖ OUT OF STOCK</span>` : '',
   ].join('');
   const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  let priceHtml = `<p class="text-amber-400 font-bold">Rs ${p.price ? p.price.toLocaleString() : 0}</p>`;
+  if (p.hasDiscount && p.discountedPrice > 0) {
+    priceHtml = `
+      <p class="text-amber-400 font-bold">Rs ${p.discountedPrice.toLocaleString()} <span class="text-xs text-amber-500/70 ml-1">(${p.discountPercent}% OFF)</span></p>
+      <p class="text-zinc-500 text-xs line-through">Rs ${p.price.toLocaleString()}</p>
+    `;
+  }
+  
   return `
-    <div class="bg-zinc-800/60 border border-zinc-700 rounded-2xl overflow-hidden product-card" id="product-card-${p._id}" data-id="${p._id}">
+    <div class="bg-zinc-800/60 border border-zinc-700 rounded-2xl overflow-hidden product-card relative" id="product-card-${p._id}" data-id="${p._id}">
+      <div class="absolute top-3 right-3 z-20">
+        <input type="checkbox" class="product-select-cb w-5 h-5 rounded border-zinc-500 bg-zinc-800/80 accent-amber-500 cursor-pointer" value="${p._id}" onchange="updateBulkDeleteBtn()" />
+      </div>
       <div class="h-44 bg-zinc-900 relative">
         ${imgHtml}
         <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">${badges}</div>
       </div>
       <div class="p-4">
-        <h3 class="text-white font-bold text-lg mb-1 truncate">${p.name}</h3>
+        <h3 class="text-white font-bold text-lg mb-1 truncate pr-8">${p.name}</h3>
         <p class="text-zinc-400 text-sm mb-1">${catName}</p>
-        <p class="text-amber-400 font-bold">Rs ${p.price ? p.price.toLocaleString() : 0}</p>
+        ${priceHtml}
         <div class="flex flex-col gap-2 mt-4">
           <div class="flex gap-2">
             <button onclick="toggleFeatured('${p._id}')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${p.isFeatured ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/40' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}">
@@ -161,15 +186,71 @@ async function loadProducts() {
   try {
     const res = await fetch('/api/products');
     allAdminProducts = await res.json();
-    const grid = document.getElementById('admin-products-grid');
-    const countEl = document.getElementById('products-count');
-    countEl.textContent = allAdminProducts.length + ' products total';
-    if (allAdminProducts.length === 0) {
-      grid.innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No products yet. Add your first product!</div>';
-    } else {
-      grid.innerHTML = allAdminProducts.map(renderProductCard).join('');
-    }
+    document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
+    document.getElementById('select-all-container').classList.remove('hidden');
+    filterAdminProducts();
   } catch(e) { console.error('Failed to load products', e); }
+}
+
+function filterAdminProducts() {
+  const q = document.getElementById('product-search-input').value.toLowerCase();
+  const grid = document.getElementById('admin-products-grid');
+  const filtered = allAdminProducts.filter(p => p.name.toLowerCase().includes(q));
+  
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No matching products found.</div>';
+  } else {
+    grid.innerHTML = filtered.map(renderProductCard).join('');
+  }
+  updateBulkDeleteBtn();
+}
+
+function toggleSelectAllProducts(checked) {
+  document.querySelectorAll('.product-select-cb').forEach(cb => cb.checked = checked);
+  updateBulkDeleteBtn();
+}
+
+function updateBulkDeleteBtn() {
+  const checked = document.querySelectorAll('.product-select-cb:checked');
+  const btn = document.getElementById('bulk-delete-btn');
+  if (checked.length > 0) {
+    btn.classList.remove('hidden');
+    btn.textContent = `Delete Selected (${checked.length})`;
+  } else {
+    btn.classList.add('hidden');
+  }
+}
+
+async function bulkDeleteProducts() {
+  const checked = document.querySelectorAll('.product-select-cb:checked');
+  if (checked.length === 0) return;
+  if (!confirm(`Are you sure you want to delete ${checked.length} products?`)) return;
+  
+  const ids = Array.from(checked).map(cb => cb.value);
+  const btn = document.getElementById('bulk-delete-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Deleting...';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch('/api/products/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (res.ok) {
+      allAdminProducts = allAdminProducts.filter(p => !ids.includes(p._id));
+      filterAdminProducts();
+      document.getElementById('select-all-products').checked = false;
+    } else {
+      const data = await res.json();
+      alert(data.message || 'Error deleting products');
+    }
+  } catch(e) { alert('Network error'); }
+  finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
 }
 
 // Load on page open
@@ -359,22 +440,15 @@ async function saveProduct(e) {
     const data = await res.json();
     if (res.ok && data.product) {
       closeModal();
-      // Update DOM immediately — don't wait for Pusher
       const p = data.product;
       if (id) {
-        // Update existing card
-        const el = document.getElementById('product-card-' + id);
-        if (el) el.outerHTML = renderProductCard(p);
-        else loadProducts();
+        const index = allAdminProducts.findIndex(x => x._id === id);
+        if (index !== -1) allAdminProducts[index] = p;
       } else {
-        // Prepend new card
-        const grid = document.getElementById('admin-products-grid');
-        const emptyMsg = grid.querySelector('.col-span-full');
-        if (emptyMsg) emptyMsg.remove();
-        grid.insertAdjacentHTML('afterbegin', renderProductCard(p));
         allAdminProducts.unshift(p);
-        document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
       }
+      document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
+      filterAdminProducts();
     } else { alert(data.message || 'Error saving'); }
   } catch { alert('Network error'); }
   finally { btn.textContent = orig; btn.disabled = false; }
@@ -384,14 +458,9 @@ async function deleteProduct(id) {
   if (!confirm('Delete this product?')) return;
   const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
   if (res.ok) {
-    // Remove card immediately
-    const el = document.getElementById('product-card-' + id);
-    if (el) el.remove();
     allAdminProducts = allAdminProducts.filter(p => p._id !== id);
     document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
-    if (allAdminProducts.length === 0) {
-      document.getElementById('admin-products-grid').innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No products yet. Add your first product!</div>';
-    }
+    filterAdminProducts();
   }
 }
 
@@ -399,16 +468,18 @@ async function toggleFeatured(id) {
   const res = await fetch(`/api/products/${id}/toggle-featured`, { method: 'PATCH' });
   const data = await res.json();
   if (data.product) {
-    const el = document.getElementById('product-card-' + id);
-    if (el) el.outerHTML = renderProductCard(data.product);
+    const index = allAdminProducts.findIndex(x => x._id === id);
+    if (index !== -1) allAdminProducts[index] = data.product;
+    filterAdminProducts();
   }
 }
 async function toggleStock(id) {
   const res = await fetch(`/api/products/${id}/toggle-out-of-stock`, { method: 'PATCH' });
   const data = await res.json();
   if (data.product) {
-    const el = document.getElementById('product-card-' + id);
-    if (el) el.outerHTML = renderProductCard(data.product);
+    const index = allAdminProducts.findIndex(x => x._id === id);
+    if (index !== -1) allAdminProducts[index] = data.product;
+    filterAdminProducts();
   }
 }
 </script>
@@ -422,18 +493,18 @@ const adminChannel = pusherAdmin.subscribe('mhq-reseller');
 // New product added → re-render full grid (lightweight, no reload)
 adminChannel.bind('product:new', () => loadProducts());
 
-// Product updated → update only that one card
+// Product updated → update
 adminChannel.bind('product:updated', (data) => {
   if (data && data._id) {
-    // Fetch the single updated product and re-render its card
     fetch('/api/products/' + data._id)
       .then(r => r.json())
       .then(p => {
-        const el = document.getElementById('product-card-' + p._id);
-        if (el) {
-          el.outerHTML = renderProductCard(p);
+        const index = allAdminProducts.findIndex(x => x._id === p._id);
+        if (index !== -1) {
+          allAdminProducts[index] = p;
+          filterAdminProducts();
         } else {
-          loadProducts(); // card not found, do full reload
+          loadProducts();
         }
       }).catch(() => loadProducts());
   } else {
@@ -445,14 +516,11 @@ adminChannel.bind('product:updated', (data) => {
 adminChannel.bind('product:deleted', (data) => {
   const id = data && data.id ? data.id : null;
   if (id) {
-    const el = document.getElementById('product-card-' + id);
-    if (el) {
-      el.remove();
-      const remaining = document.querySelectorAll('.product-card').length;
-      document.getElementById('products-count').textContent = remaining + ' products total';
-      if (remaining === 0) {
-        document.getElementById('admin-products-grid').innerHTML = '<div class="col-span-full text-center py-20 text-zinc-400">No products yet. Add your first product!</div>';
-      }
+    const index = allAdminProducts.findIndex(x => x._id === id);
+    if (index !== -1) {
+      allAdminProducts.splice(index, 1);
+      document.getElementById('products-count').textContent = allAdminProducts.length + ' products total';
+      filterAdminProducts();
     }
   } else {
     loadProducts();

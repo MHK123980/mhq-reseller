@@ -24,11 +24,10 @@ const getOne = async (req, res) => {
 const create = async (req, res) => {
   try {
     const body = { ...req.body };
-    // Auto-calculate discountPercent from discountedPrice
     if (body.hasDiscount && body.discountedPrice && body.price) {
       const dp = parseFloat(body.discountedPrice);
       const p = parseFloat(body.price);
-      body.discountPercent = dp < p ? Math.round((p - dp) / p * 100) : 0;
+      body.discountPercent = dp < p ? parseFloat(((p - dp) / p * 100).toFixed(2)) : 0;
       if (body.discountPercent <= 0) { body.hasDiscount = false; body.discountPercent = 0; }
     } else {
       body.discountPercent = 0;
@@ -48,11 +47,10 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const body = { ...req.body };
-    // Auto-calculate discountPercent from discountedPrice
     if (body.hasDiscount && body.discountedPrice && body.price) {
       const dp = parseFloat(body.discountedPrice);
       const p = parseFloat(body.price);
-      body.discountPercent = dp < p ? Math.round((p - dp) / p * 100) : 0;
+      body.discountPercent = dp < p ? parseFloat(((p - dp) / p * 100).toFixed(2)) : 0;
       if (body.discountPercent <= 0) { body.hasDiscount = false; body.discountPercent = 0; }
     } else if (!body.hasDiscount) {
       body.discountPercent = 0;
@@ -118,5 +116,27 @@ const toggleOutOfStock = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+const bulkDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No IDs provided' });
+    }
+    
+    await Product.deleteMany({ _id: { $in: ids } });
+    
+    const pusher = req.app.get('pusher');
+    if (pusher) {
+      // Trigger event for each deleted product so UI removes them
+      for (const id of ids) {
+        await pusher.trigger('mhq-reseller', 'product:deleted', { id });
+      }
+    }
+    
+    res.json({ success: true, message: 'Products deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
-module.exports = { getAll, getOne, create, update, remove, toggleFeatured, toggleOutOfStock };
+module.exports = { getAll, getOne, create, update, remove, bulkDelete, toggleFeatured, toggleOutOfStock };

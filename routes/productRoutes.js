@@ -1,9 +1,10 @@
 const router = require('express').Router();
-const { getAll, getOne, create, update, remove, toggleFeatured, toggleOutOfStock } = require('../controllers/productController');
+const { getAll, getOne, create, update, remove, bulkDelete, toggleFeatured, toggleOutOfStock } = require('../controllers/productController');
 const { protectAPI } = require('../middleware/auth');
 
 router.get('/', getAll);
 router.get('/:id', getOne);
+router.post('/bulk-delete', protectAPI, bulkDelete);
 router.post('/', protectAPI, create);
 router.put('/:id', protectAPI, update);
 router.delete('/:id', protectAPI, remove);

@@ -1,6 +1,6 @@
 <%
-const finalPrice = product.hasDiscount && product.discountPercent > 0
-  ? (product.price - (product.price * product.discountPercent / 100)).toFixed(0)
+const finalPrice = product.hasDiscount && product.discountedPrice > 0
+  ? product.discountedPrice
   : product.price;
 %>
 
@@ -47,7 +47,7 @@ const finalPrice = product.hasDiscount && product.discountPercent > 0
       <!-- Price -->
       <div class="flex items-end gap-3 mb-4">
         <span class="text-3xl font-black text-amber-400">Rs <%= finalPrice %></span>
-        <% if (product.hasDiscount && product.discountPercent > 0) { %>
+        <% if (product.hasDiscount && product.discountedPrice > 0) { %>
         <span class="text-zinc-500 line-through text-lg">Rs <%= product.price %></span>
         <span class="text-green-400 text-sm font-semibold">Save Rs <%= (product.price - finalPrice).toFixed(0) %></span>
         <% } %>

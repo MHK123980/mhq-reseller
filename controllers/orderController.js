@@ -90,4 +90,26 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { getAll, create, updateStatus, remove, getStats };
+const bulkDelete = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No IDs provided' });
+    }
+    
+    await Order.deleteMany({ _id: { $in: ids } });
+    
+    const pusher = req.app.get('pusher');
+    if (pusher) {
+      for (const id of ids) {
+        await pusher.trigger('mhq-reseller', 'order:deleted', { id });
+      }
+    }
+    
+    res.json({ success: true, message: 'Orders deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getAll, create, updateStatus, remove, bulkDelete, getStats };
