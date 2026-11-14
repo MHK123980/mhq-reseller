@@ -68,9 +68,9 @@ function discountedPrice(p) {
 </section>
 
 <!-- CATEGORIES SECTION -->
-<% if (categories.length > 0) { %>
-<section class="py-10 px-4 max-w-7xl mx-auto reveal" id="browse-categories-section">
-  <div class="flex items-center justify-between mb-6">
+<% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+<section class="py-10 px-4 max-w-7xl mx-auto" id="browse-categories-section">
+  <div class="flex items-center justify-between mb-5">
     <div>
       <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-500 tracking-widest uppercase mb-1">
         <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
@@ -85,14 +85,14 @@ function discountedPrice(p) {
 
   <!-- Horizontal Scroll of Visual Category Badges -->
   <div class="relative">
-    <div class="flex items-center gap-3 overflow-x-auto pb-4 scroll-smooth" id="categories-list" style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
-      <button onclick="filterByCategory('all')" class="category-btn cat-pill active-cat flex items-center gap-2 flex-shrink-0 px-5 py-3 rounded-2xl bg-zinc-900/90 border border-amber-500/50 text-amber-400 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-500/10 hover:border-amber-400 transition-all whitespace-nowrap" data-cat="all">
+    <div class="flex items-center gap-2.5 sm:gap-3 overflow-x-auto pb-4 pt-1 scroll-smooth" id="categories-list" style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
+      <button type="button" onclick="filterByCategory('all')" class="category-btn cat-pill active-cat flex items-center gap-2 flex-shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-zinc-900/90 border border-amber-500/50 text-amber-400 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-500/10 hover:border-amber-400 transition-all whitespace-nowrap cursor-pointer" data-cat="all">
         <span class="text-base">✦</span>
         <span>All Products</span>
       </button>
 
-      <% categories.forEach((cat, idx) => { %>
-      <button onclick="filterByCategory('<%= cat._id %>')" class="category-btn cat-pill flex items-center gap-2.5 flex-shrink-0 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-zinc-300 text-xs sm:text-sm font-medium hover:border-amber-500/60 hover:text-amber-400 hover:bg-zinc-800/80 transition-all shadow-sm whitespace-nowrap" data-cat="<%= cat._id %>">
+      <% categories.forEach((cat) => { %>
+      <button type="button" onclick="filterByCategory('<%= cat._id %>')" class="category-btn cat-pill flex items-center gap-2 flex-shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-zinc-300 text-xs sm:text-sm font-medium hover:border-amber-500/60 hover:text-amber-400 hover:bg-zinc-800/80 transition-all shadow-sm whitespace-nowrap cursor-pointer" data-cat="<%= cat._id %>">
         <span class="w-2 h-2 rounded-full bg-amber-400/60"></span>
         <span><%= cat.name %></span>
       </button>
