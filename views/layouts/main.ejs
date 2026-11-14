@@ -4,7 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= typeof title !== 'undefined' ? title : 'MHQ Reseller (Broker)' %></title>
-  <meta name="description" content="MHQ Reseller (Broker) - Premium wholesale & retail products at the best prices. Nationwide & international dispatch." />
+  <meta name="description" content="MHQ Reseller (Broker) — A Trusted Nationwide & International Trader. Premium Wholesale & Retail Products with Express Dispatch & Live Tracking." />
+  
+  <!-- WhatsApp & Social Link Preview (OpenGraph) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mhqreseller.vercel.app/" />
+  <meta property="og:title" content="MHQ Reseller (Broker)" />
+  <meta property="og:description" content="MHQ Reseller (Broker) — A Trusted Nationwide & International Trader. Premium Wholesale & Retail Products with Express Dispatch & Live Tracking." />
+  <meta property="og:image" content="https://mhqreseller.vercel.app/og-image.png" />
+  <meta property="og:image:secure_url" content="https://mhqreseller.vercel.app/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="MHQ Reseller (Broker) - A Trusted Nationwide & International Trader" />
+  <meta property="og:site_name" content="MHQ Reseller (Broker)" />
+
+  <!-- Twitter Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://mhqreseller.vercel.app/" />
+  <meta name="twitter:title" content="MHQ Reseller (Broker)" />
+  <meta name="twitter:description" content="MHQ Reseller (Broker) — A Trusted Nationwide & International Trader. Premium Wholesale & Retail Products." />
+  <meta name="twitter:image" content="https://mhqreseller.vercel.app/og-image.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/mhq-logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
@@ -147,9 +170,20 @@
   </style>
 </head>
 <body class="min-h-screen text-white font-sans">
+  <% const hasSaleBar = typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.enabled && saleAnnouncement.text; %>
+
+  <!-- Mega Sale / Top Announcement Bar (Controlled via Admin Settings) -->
+  <% if (hasSaleBar) { %>
+  <div id="top-announcement-bar" class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black py-1.5 px-3 text-[11px] sm:text-xs font-bold text-center tracking-wide flex items-center justify-center gap-2 fixed top-0 left-0 right-0 z-50 border-b border-amber-600/40 shadow-sm select-none">
+    <span><%= saleAnnouncement.text %></span>
+    <% if (saleAnnouncement.link) { %>
+    <a href="<%= saleAnnouncement.link %>" class="underline hover:text-white transition-colors ml-1 font-black">Shop Now →</a>
+    <% } %>
+  </div>
+  <% } %>
 
   <!-- Navbar -->
-  <nav class="navbar-glass fixed top-0 left-0 right-0 z-50">
+  <nav class="navbar-glass fixed <%= hasSaleBar ? 'top-8' : 'top-0' %> left-0 right-0 z-50 transition-all">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
@@ -315,7 +349,7 @@
   </div>
 
   <!-- Main Content -->
-  <main class="pt-16">
+  <main class="<%= hasSaleBar ? 'pt-24' : 'pt-16' %>">
     <%- body %>
   </main>
 

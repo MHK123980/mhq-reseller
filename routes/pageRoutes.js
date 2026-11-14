@@ -120,11 +120,23 @@ router.get('/admin/dashboard', protect, (req, res) => {
 });
 
 router.get('/admin/dashboard/settings', protect, async (req, res) => {
-  const estTimeSetting = await Setting.findOne({ key: 'estimatedDeliveryTime' });
-  res.render('admin/settings', { layout: 'layouts/admin',
-    estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
-    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    user: req.user, title: 'Settings - MHQ Admin' });
+  try {
+    const [estTimeSetting, saleSetting] = await Promise.all([
+      Setting.findOne({ key: 'estimatedDeliveryTime' }).lean(),
+      Setting.findOne({ key: 'saleAnnouncement' }).lean()
+    ]);
+    res.render('admin/settings', { layout: 'layouts/admin',
+      estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
+      saleAnnouncement: saleSetting ? saleSetting.value : { enabled: false, text: '', link: '/products' },
+      pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+      user: req.user, title: 'Settings - MHQ Admin' });
+  } catch (err) {
+    res.render('admin/settings', { layout: 'layouts/admin',
+      estimatedDeliveryTime: '3-5 Days',
+      saleAnnouncement: { enabled: false, text: '', link: '/products' },
+      pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+      user: req.user, title: 'Settings - MHQ Admin' });
+  }
 });
 
 router.get('/admin/dashboard/products', protect, async (req, res) => {

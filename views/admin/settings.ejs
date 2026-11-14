@@ -1,9 +1,47 @@
-<div class="p-6 max-w-4xl mx-auto">
-  <div class="mb-8">
-    <h1 class="text-2xl font-bold text-white mb-1">Settings</h1>
-    <p class="text-zinc-400 text-sm">Manage global store configurations</p>
+<div class="p-6 max-w-4xl mx-auto space-y-6">
+  <div class="mb-4">
+    <h1 class="text-2xl font-bold text-white mb-1">Store Settings</h1>
+    <p class="text-zinc-400 text-sm">Manage global store configurations, sales announcements, and delivery timing</p>
   </div>
 
+  <!-- Promotional Announcement & Mega Sale Banner Card -->
+  <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+    <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+      <div>
+        <h2 class="text-lg font-bold text-amber-500 flex items-center gap-2">
+          <span>🔥</span> Mega Sale & Top Announcement Bar
+        </h2>
+        <p class="text-xs text-zinc-400 mt-0.5">Display a luxury top announcement banner on the customer website for 11.11, Flash Sales, etc.</p>
+      </div>
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" id="saleAnnouncementEnabled" class="sr-only peer" <%= (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.enabled) ? 'checked' : '' %>>
+        <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+      </label>
+    </div>
+
+    <form id="sale-form" onsubmit="saveSaleSettings(event)" class="space-y-4">
+      <div>
+        <label class="block text-sm text-zinc-400 mb-1">Announcement Message Text</label>
+        <input type="text" id="saleAnnouncementText" value="<%= (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.text) ? saleAnnouncement.text : '' %>"
+          class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-amber-500 outline-none transition-colors"
+          placeholder="e.g. 🔥 MEGA 11.11 SALE IS LIVE! Up to 50% OFF — Limited Time Offer!" />
+        <p class="text-[11px] text-zinc-500 mt-1">When enabled, this message will be shown at the top of every page.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm text-zinc-400 mb-1">Target Link (Optional)</label>
+        <input type="text" id="saleAnnouncementLink" value="<%= (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.link) ? saleAnnouncement.link : '/products' %>"
+          class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-amber-500 outline-none transition-colors"
+          placeholder="e.g. /products or /featuredproducts" />
+      </div>
+
+      <button type="submit" id="sale-save-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm">
+        Save Sale Announcement
+      </button>
+    </form>
+  </div>
+
+  <!-- Delivery Settings Card -->
   <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
     <h2 class="text-lg font-bold text-amber-500 mb-4 border-b border-zinc-800 pb-2">Delivery Settings</h2>
     
@@ -14,14 +52,50 @@
         <p class="text-xs text-zinc-500 mt-2">This will be shown to customers in the order confirmation message.</p>
       </div>
 
-      <button type="submit" id="save-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors">
-        Save Settings
+      <button type="submit" id="save-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm">
+        Save Delivery Settings
       </button>
     </form>
   </div>
 </div>
 
 <script>
+async function saveSaleSettings(e) {
+  e.preventDefault();
+  const btn = document.getElementById('sale-save-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const payload = {
+    enabled: document.getElementById('saleAnnouncementEnabled').checked,
+    text: document.getElementById('saleAnnouncementText').value.trim(),
+    link: document.getElementById('saleAnnouncementLink').value.trim() || '/products'
+  };
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        key: 'saleAnnouncement',
+        value: payload
+      })
+    });
+    const data = await res.json();
+    if(res.ok && data.success) {
+      alert('Sale announcement settings saved successfully!');
+    } else {
+      alert(data.message || 'Failed to save announcement settings.');
+    }
+  } catch(err) {
+    alert('Network error while saving announcement.');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+
 async function saveSettings(e) {
   e.preventDefault();
   const btn = document.getElementById('save-btn');
@@ -40,7 +114,7 @@ async function saveSettings(e) {
     });
     const data = await res.json();
     if(res.ok && data.success) {
-      alert('Settings saved successfully!');
+      alert('Delivery settings saved successfully!');
     } else {
       alert('Failed to save settings.');
     }

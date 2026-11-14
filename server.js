@@ -50,6 +50,27 @@ const courierRoutes = require('./routes/courierRoutes');
 
 app.use(async (req, res, next) => { await connectDB(); next(); });
 
+// In-memory cache for global sale announcement (30s TTL, instant page loads)
+let cachedSaleAnnouncement = null;
+let lastSaleCacheTime = 0;
+
+app.use(async (req, res, next) => {
+  const now = Date.now();
+  if (cachedSaleAnnouncement !== null && (now - lastSaleCacheTime < 30000)) {
+    res.locals.saleAnnouncement = cachedSaleAnnouncement;
+    return next();
+  }
+  try {
+    const saleSetting = await Setting.findOne({ key: 'saleAnnouncement' }).lean().maxTimeMS(1000);
+    cachedSaleAnnouncement = saleSetting ? saleSetting.value : { enabled: false, text: '', link: '/products' };
+    lastSaleCacheTime = now;
+  } catch (e) {
+    cachedSaleAnnouncement = { enabled: false, text: '', link: '/products' };
+  }
+  res.locals.saleAnnouncement = cachedSaleAnnouncement;
+  next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
@@ -63,6 +84,11 @@ app.post('/api/settings', protectAPI, async (req, res) => {
   try {
     const { key, value } = req.body;
     await Setting.findOneAndUpdate({ key }, { value }, { upsert: true, new: true });
+    // Invalidate memory cache so changes apply immediately
+    if (key === 'saleAnnouncement') {
+      cachedSaleAnnouncement = value;
+      lastSaleCacheTime = Date.now();
+    }
     res.json({ success: true });
   } catch(e) {
     res.status(500).json({ success: false, message: e.message });
