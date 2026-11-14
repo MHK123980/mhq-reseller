@@ -42,24 +42,45 @@
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 let currentTrackedOrderId = null;
-const statusOrder = ['Pending','Packed','Ready to Ship','On Route','Out for Delivery','Delivered'];
+// Simplified 3-step progress bar per user requirement: Pending -> Shipping -> Delivered
+const statusOrder = ['Pending', 'Shipping', 'Delivered'];
 const statusIcons = {
   'Pending': '🕐',
-  'Packed': '📦',
-  'Ready to Ship': '📋',
-  'On Route': '🚚',
-  'Out for Delivery': '🏃',
+  'Shipping': '🚚',
   'Delivered': '✅',
   'Canceled': '❌'
 };
-const courierLinks = {
-  'TCS': 'https://www.tcsexpress.com/track/',
-  'PostEx': 'https://postex.pk/tracking',
-  'Leopard': 'https://www.leopardscourier.com/leopards_tracking/',
-  'M&B': 'https://www.mnbcourier.pk/track/',
-  'Trax': 'https://trax.pk/tracking/',
-  'Call Courier': 'https://callcourier.com.pk/tracking/'
-};
+
+// Returns tracking portal URL with CN pre-filled or direct tracking input page
+function getCourierTrackingUrl(courierCompany, cn) {
+  const cleanCN = encodeURIComponent((cn || '').trim());
+  switch (courierCompany) {
+    case 'TCS':
+      return `https://www.tcsexpress.com/track/${cleanCN}`;
+    case 'PostEx':
+      return `https://postex.pk/tracking?cn=${cleanCN}`;
+    case 'Leopard':
+      return `https://www.leopardscourier.com/leopards_tracking/?track_numbers=${cleanCN}`;
+    case 'Trax':
+      return `https://trax.pk/tracking/?tracking_number=${cleanCN}`;
+    case 'M&B':
+      return `https://www.mnbcourier.pk/track/${cleanCN}`;
+    case 'Call Courier':
+      return `https://callcourier.com.pk/tracking/?cn=${cleanCN}`;
+    default:
+      return null;
+  }
+}
+
+// Maps database status into one of: 'Pending', 'Shipping', 'Delivered', or 'Canceled'
+function mapToThreeSteps(rawStatus) {
+  if (rawStatus === 'Canceled') return 'Canceled';
+  if (rawStatus === 'Delivered') return 'Delivered';
+  if (['Packed', 'Ready to Ship', 'On Route', 'Out for Delivery', 'Shipping'].includes(rawStatus)) {
+    return 'Shipping';
+  }
+  return 'Pending';
+}
 
 async function trackOrder() {
   const orderId = document.getElementById('order-id-input').value.trim().toUpperCase();
@@ -91,28 +112,29 @@ async function trackOrder() {
 
 function renderTrackingDetails(order, tracking) {
   const result = document.getElementById('track-result');
-  const currentStatusIdx = statusOrder.indexOf(order.status);
-  const isCanceled = order.status === 'Canceled';
+  const mappedStatus = mapToThreeSteps(order.status);
+  const currentStatusIdx = statusOrder.indexOf(mappedStatus);
+  const isCanceled = mappedStatus === 'Canceled';
   
   const stepsHtml = isCanceled ? 
     `<div class="bg-red-900/20 border border-red-500/30 rounded-xl p-4 text-center"><p class="text-red-400 font-semibold text-sm">❌ Order Canceled</p></div>` :
     statusOrder.map((s, i) => {
       const done = i < currentStatusIdx;
       const active = i === currentStatusIdx;
-      return `<div class="status-step ${done ? 'done' : ''} flex items-center gap-3.5 pb-3.5 last:pb-0">
-        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs sm:text-sm ${active ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/40 font-black' : done ? 'bg-amber-900/50 border border-amber-700/50 text-amber-500 font-bold' : 'bg-zinc-800 border border-zinc-700 text-zinc-600'}">
+      return `<div class="status-step ${done ? 'done' : ''} flex items-center gap-4 pb-4 last:pb-0">
+        <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs sm:text-sm ${active ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/50 font-black' : done ? 'bg-amber-900/50 border border-amber-700/50 text-amber-400 font-bold' : 'bg-zinc-800 border border-zinc-700 text-zinc-600'}">
           ${done ? '✓' : active ? (statusIcons[s] || '●') : '○'}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs sm:text-sm font-semibold ${active ? 'text-amber-400' : done ? 'text-zinc-300' : 'text-zinc-600'}">${s}</p>
-          ${active ? '<p class="text-[10px] text-amber-400/80 mt-0.5">Current Live Status</p>' : ''}
+          <p class="text-xs sm:text-sm font-bold ${active ? 'text-amber-400' : done ? 'text-zinc-300' : 'text-zinc-600'}">${s}</p>
+          ${active ? `<p class="text-[10px] text-amber-400/80 mt-0.5">Current Progress (${order.status})</p>` : ''}
         </div>
       </div>`;
     }).join('');
 
   const courierHtml = tracking ? (() => {
     const companyName = tracking.courierCompany === 'Other' ? (tracking.courierName || 'Other') : tracking.courierCompany;
-    const trackUrl = courierLinks[tracking.courierCompany];
+    const trackUrl = getCourierTrackingUrl(tracking.courierCompany, tracking.trackingNumber);
     return `<div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl">
       <div class="flex items-center gap-2 mb-3">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
@@ -128,8 +150,8 @@ function renderTrackingDetails(order, tracking) {
           <p class="text-amber-400 font-bold text-sm font-mono tracking-wider">${tracking.trackingNumber}</p>
         </div>
       </div>
-      ${trackUrl ? `<a href="${trackUrl}${encodeURIComponent(tracking.trackingNumber)}" target="_blank" rel="noopener noreferrer" class="mt-3 btn-gold flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm w-full rounded-xl font-bold shadow-lg shadow-amber-500/20">
-        <span>Track on ${companyName} Portal</span>
+      ${trackUrl ? `<a href="${trackUrl}" target="_blank" rel="noopener noreferrer" class="mt-3 btn-gold flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm w-full rounded-xl font-bold shadow-lg shadow-amber-500/20">
+        <span>Open ${companyName} Tracking Portal</span>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
       </a>` : ''}
     </div>`;

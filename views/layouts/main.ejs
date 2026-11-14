@@ -213,9 +213,9 @@
             <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             <span id="cart-count-mobile" class="absolute -top-1 -right-1 bg-amber-400 text-black text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
           </a>
-          <button id="menu-btn" onclick="toggleMobileMenu()" class="w-9 h-9 rounded-full border border-zinc-700 hover:border-zinc-500 flex items-center justify-center transition-all text-zinc-300">
-            <svg id="menu-icon-open" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            <svg id="menu-icon-close" class="w-4 h-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <button id="menu-btn" type="button" aria-label="Toggle mobile menu" class="relative z-50 w-10 h-10 rounded-full border border-zinc-700/80 hover:border-amber-500/50 bg-zinc-900/80 flex items-center justify-center transition-all text-zinc-300 hover:text-white cursor-pointer select-none">
+            <svg id="menu-icon-open" class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg id="menu-icon-close" class="w-5 h-5 hidden pointer-events-none text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
@@ -350,9 +350,17 @@
         </div>
       </div>
       <div class="gold-divider mb-6"></div>
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p class="text-zinc-600 text-xs">© 2025 MHQ Reseller. All rights reserved.</p>
-        <p class="text-zinc-700 text-xs">Quality Products • Best Prices • Fast Delivery</p>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+        <div>
+          <p class="text-zinc-500 text-xs">© 2025 MHQ Reseller (Broker). All rights reserved.</p>
+          <p class="text-zinc-600 text-[11px] mt-0.5">Nationwide & International Dispatch • Guaranteed Quality</p>
+        </div>
+        <div>
+          <a href="https://wa.me/message/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-amber-400 transition-colors font-medium">
+            <span>Developed By</span>
+            <span class="text-amber-400 font-bold tracking-wide">MHT Devs</span>
+          </a>
+        </div>
       </div>
     </div>
   </footer>
@@ -361,16 +369,35 @@
   <script src="/js/cart.js"></script>
   <script src="/js/main.js"></script>
   <script>
-    // Mobile menu toggle
+    // Bulletproof Mobile Menu Toggle
     function toggleMobileMenu() {
       const menu = document.getElementById('mobile-menu');
       const iconOpen = document.getElementById('menu-icon-open');
       const iconClose = document.getElementById('menu-icon-close');
+      if (!menu) return;
       const isHidden = menu.classList.contains('hidden');
-      menu.classList.toggle('hidden', !isHidden);
-      iconOpen.classList.toggle('hidden', isHidden);
-      iconClose.classList.toggle('hidden', !isHidden);
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        if (iconOpen) iconOpen.classList.add('hidden');
+        if (iconClose) iconClose.classList.remove('hidden');
+      } else {
+        menu.classList.add('hidden');
+        if (iconOpen) iconOpen.classList.remove('hidden');
+        if (iconClose) iconClose.classList.add('hidden');
+      }
     }
+
+    // Attach explicit click listener on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      const mBtn = document.getElementById('menu-btn');
+      if (mBtn) {
+        mBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleMobileMenu();
+        });
+      }
+    });
 
     function toggleMobileCategories() {
       const drop = document.getElementById('mob-categories-dropdown');
@@ -389,7 +416,7 @@
       });
     }
 
-    // Search
+    // Instant Search with pre-caching
     let _searchProducts = null;
     let _searchTimer = null;
 
@@ -397,13 +424,15 @@
       const overlay = document.getElementById('search-overlay');
       overlay.classList.remove('hidden');
       requestAnimationFrame(() => { requestAnimationFrame(() => overlay.classList.add('open')); });
-      setTimeout(() => { const inp = document.getElementById('search-input'); if(inp) inp.focus(); }, 60);
+      setTimeout(() => { const inp = document.getElementById('search-input'); if(inp) inp.focus(); }, 40);
       document.body.style.overflow = 'hidden';
+      // Pre-warm product cache immediately on open
+      loadSearchProducts();
     }
     function closeSearch() {
       const overlay = document.getElementById('search-overlay');
       overlay.classList.remove('open');
-      setTimeout(() => overlay.classList.add('hidden'), 280);
+      setTimeout(() => overlay.classList.add('hidden'), 200);
       document.body.style.overflow = '';
       const inp = document.getElementById('search-input');
       if(inp) inp.value = '';
@@ -412,13 +441,20 @@
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSearch(); });
 
     async function loadSearchProducts() {
-      if (_searchProducts) return _searchProducts;
+      if (_searchProducts && _searchProducts.length) return _searchProducts;
       try {
         const res = await fetch('/api/products');
         _searchProducts = await res.json();
         return _searchProducts;
       } catch { return []; }
     }
+    // Pre-cache products in background after idle
+    if (typeof window !== 'undefined') {
+      window.addEventListener('load', () => {
+        setTimeout(loadSearchProducts, 1000);
+      });
+    }
+
     function handleSearchKey(e) {
       if (e.key === 'Enter') {
         const q = document.getElementById('search-input').value.trim();
@@ -428,18 +464,18 @@
     function handleSearch(q) {
       clearTimeout(_searchTimer);
       const results = document.getElementById('search-results');
-      const query = q.trim().toLowerCase();
+      const query = (q || '').trim().toLowerCase();
       if (!query) { results.innerHTML = ''; return; }
-      results.innerHTML = '<div class="text-center py-6 text-zinc-600 text-sm flex items-center justify-center gap-2"><div class="w-4 h-4 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div> Searching…</div>';
+      
       _searchTimer = setTimeout(async () => {
         const products = await loadSearchProducts();
-        const filtered = products.filter(p =>
-          p.name.toLowerCase().includes(query) ||
+        const filtered = (products || []).filter(p =>
+          (p.name && p.name.toLowerCase().includes(query)) ||
           (p.category && p.category.name && p.category.name.toLowerCase().includes(query))
-        ).slice(0, 7);
+        ).slice(0, 8);
 
         if (filtered.length === 0) {
-          results.innerHTML = `<div class="text-center py-10 text-zinc-600 text-sm">No products found for <span class="text-amber-400 font-medium">"${q}"</span></div>`;
+          results.innerHTML = `<div class="text-center py-8 text-zinc-500 text-xs sm:text-sm">No products found for <span class="text-amber-400 font-semibold">"${q}"</span></div>`;
           return;
         }
         const cards = filtered.map(p => {
@@ -447,27 +483,28 @@
           const img = p.images && p.images.length ? p.images[0] : '';
           const catName = p.category ? (p.category.name || '') : '';
           const discBadge = p.hasDiscount && p.discountPercent > 0
-            ? `<span class="text-[9px] bg-amber-500 text-black font-bold px-1.5 py-0.5 rounded-full ml-2 align-middle">${p.discountPercent}% OFF</span>` : '';
+            ? `<span class="text-[9px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full ml-2 align-middle">${p.discountPercent}% OFF</span>` : '';
           const imgEl = img
-            ? `<img src="${img}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>`
+            ? `<img src="${img}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy"/>`
             : `<div class="w-full h-full flex items-center justify-center text-zinc-700"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
-          return `<a href="/product/${p._id}" onclick="closeSearch()" class="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/60 hover:border-amber-500/40 hover:bg-zinc-800/80 transition-all group cursor-pointer">
-            <div class="w-14 h-14 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700/50">${imgEl}</div>
+          return `<a href="/product/${p._id}" onclick="closeSearch()" class="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-3 rounded-xl bg-zinc-900/80 border border-zinc-800 hover:border-amber-500/50 hover:bg-zinc-800 transition-all group cursor-pointer">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700/50">${imgEl}</div>
             <div class="flex-1 min-w-0">
-              <p class="text-white font-medium text-sm leading-tight">${p.name}${discBadge}</p>
-              <p class="text-zinc-600 text-xs mt-0.5">${catName}</p>
-              ${p.isOutOfStock ? '<p class="text-red-400 text-xs mt-0.5 font-medium">Out of Stock</p>' : ''}
+              <p class="text-white font-medium text-xs sm:text-sm leading-tight truncate">${p.name}${discBadge}</p>
+              <p class="text-zinc-500 text-[11px] mt-0.5 truncate">${catName}</p>
+              ${p.isOutOfStock ? '<p class="text-red-400 text-[10px] mt-0.5 font-bold">Out of Stock</p>' : ''}
             </div>
             <div class="text-right flex-shrink-0">
-              <p class="text-amber-400 font-bold text-sm">Rs ${Number(price).toLocaleString()}</p>
-              ${p.hasDiscount && p.discountedPrice > 0 ? `<p class="text-zinc-700 text-xs line-through">Rs ${Number(p.price).toLocaleString()}</p>` : ''}
+              <p class="text-amber-400 font-bold text-xs sm:text-sm">Rs ${Number(price).toLocaleString()}</p>
+              ${p.hasDiscount && p.discountedPrice > 0 ? `<p class="text-zinc-500 text-[10px] line-through">Rs ${Number(p.price).toLocaleString()}</p>` : ''}
             </div>
           </a>`;
         }).join('');
         const showMore = filtered.length >= 7
-          ? `<div class="text-center pt-3 pb-1"><a href="/products?search=${encodeURIComponent(q)}" onclick="closeSearch()" class="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 text-sm font-medium transition-colors">View all results <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div>` : '';
+          ? `<div class="text-center pt-2 pb-1"><a href="/products?search=${encodeURIComponent(q)}" onclick="closeSearch()" class="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 text-xs sm:text-sm font-semibold transition-colors">View all results <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div>` : '';
         results.innerHTML = cards + showMore;
-      }, 200);
+      }, 70);
+    }
     }
 
     // Reveal on scroll

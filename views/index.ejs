@@ -27,11 +27,11 @@ function discountedPrice(p) {
 
     <!-- Main Title -->
     <h1 class="text-4xl sm:text-6xl md:text-8xl font-black text-white leading-tight tracking-tight mb-6 font-serif">
-      MHQ <span class="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">Reseller</span>
+      MHQ <span class="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">Reseller</span> <span class="text-xl sm:text-3xl md:text-4xl font-normal text-zinc-400 align-middle">(Broker)</span>
     </h1>
 
     <p class="text-zinc-300 text-base md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-      Discover exceptional craftsmanship and premium selections curated for distinction. Unrivaled value, express nationwide dispatch, and guaranteed quality.
+      Discover exceptional craftsmanship and premium selections curated for distinction. Unrivaled value, express nationwide & international dispatch, and guaranteed quality.
     </p>
 
     <!-- CTAs -->
@@ -83,16 +83,16 @@ function discountedPrice(p) {
     </a>
   </div>
 
-  <!-- Horizontal Scroll / Grid of Visual Category Badges -->
+  <!-- Horizontal Scroll of Visual Category Badges -->
   <div class="relative">
-    <div class="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar scroll-smooth" id="categories-list">
-      <button onclick="filterByCategory('all')" class="category-btn cat-pill active-cat flex items-center gap-2 flex-shrink-0 px-5 py-3 rounded-2xl bg-zinc-900/90 border border-amber-500/50 text-amber-400 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-500/10 hover:border-amber-400 transition-all" data-cat="all">
+    <div class="flex items-center gap-3 overflow-x-auto pb-4 scroll-smooth" id="categories-list" style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
+      <button onclick="filterByCategory('all')" class="category-btn cat-pill active-cat flex items-center gap-2 flex-shrink-0 px-5 py-3 rounded-2xl bg-zinc-900/90 border border-amber-500/50 text-amber-400 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-500/10 hover:border-amber-400 transition-all whitespace-nowrap" data-cat="all">
         <span class="text-base">✦</span>
         <span>All Products</span>
       </button>
 
       <% categories.forEach((cat, idx) => { %>
-      <button onclick="filterByCategory('<%= cat._id %>')" class="category-btn cat-pill flex items-center gap-2.5 flex-shrink-0 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-zinc-300 text-xs sm:text-sm font-medium hover:border-amber-500/60 hover:text-amber-400 hover:bg-zinc-800/80 transition-all shadow-sm" data-cat="<%= cat._id %>">
+      <button onclick="filterByCategory('<%= cat._id %>')" class="category-btn cat-pill flex items-center gap-2.5 flex-shrink-0 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-zinc-300 text-xs sm:text-sm font-medium hover:border-amber-500/60 hover:text-amber-400 hover:bg-zinc-800/80 transition-all shadow-sm whitespace-nowrap" data-cat="<%= cat._id %>">
         <span class="w-2 h-2 rounded-full bg-amber-400/60"></span>
         <span><%= cat.name %></span>
       </button>

@@ -5,12 +5,14 @@
     <p class="text-zinc-400">Browse our complete luxury collection with live stock & fast dispatch</p>
   </div>
 
-  <!-- Category Filter -->
-  <div class="flex flex-wrap gap-2.5 mb-8" id="cat-filter">
-    <button onclick="filterCat('all')" class="cat-pill active-cat" data-cat="all">✦ All Products</button>
-    <% categories.forEach(c => { %>
-    <button onclick="filterCat('<%= c._id %>')" class="cat-pill" data-cat="<%= c._id %>"><%= c.name %></button>
-    <% }) %>
+  <!-- Category Filter Sliding Carousel -->
+  <div class="relative mb-8">
+    <div class="flex items-center gap-2.5 overflow-x-auto pb-3 pt-1 scroll-smooth" id="cat-filter" style="-webkit-overflow-scrolling: touch; touch-action: pan-x;">
+      <button onclick="filterCat('all')" class="cat-pill active-cat flex-shrink-0 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all whitespace-nowrap" data-cat="all">✦ All Products</button>
+      <% categories.forEach(c => { %>
+      <button onclick="filterCat('<%= c._id %>')" class="cat-pill flex-shrink-0 px-4 py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap" data-cat="<%= c._id %>"><%= c.name %></button>
+      <% }) %>
+    </div>
   </div>
 
   <!-- Products Grid -->

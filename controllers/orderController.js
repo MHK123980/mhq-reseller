@@ -101,19 +101,21 @@ const create = async (req, res) => {
 };
 
 async function sendOrderEmail(order) {
-  const SibApiV3Sdk = require('@getbrevo/brevo');
-  const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-  apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return;
 
   const recipientEmail = process.env.ADMIN_EMAIL || 'mhqreseller@gmail.com';
+  // Brevo requires the sender email to be an active, verified sender or account email in Brevo dashboard
   const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.ADMIN_EMAIL || 'mhqreseller@gmail.com';
 
   const productsHtml = (order.products || []).map(p => `
     <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#e5e5e5;">${p.product ? p.product.name : 'Unknown'}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#fbbf24;text-align:center;">${p.quantity}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#fbbf24;text-align:right;">Rs ${p.priceAtPurchase * p.quantity}</td>
-      ${p.selectedVariant ? `<td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#a1a1a1;">${p.selectedVariant}</td>` : '<td></td>'}
+      <td style="padding:10px 12px;border-bottom:1px solid #27272a;color:#ffffff;font-size:13px;font-weight:600;">
+        ${p.product ? p.product.name : 'Unknown Product'}
+        ${p.selectedVariant ? `<div style="color:#fbbf24;font-size:11px;font-weight:normal;margin-top:2px;">Variant: ${p.selectedVariant}</div>` : ''}
+      </td>
+      <td style="padding:10px 12px;border-bottom:1px solid #27272a;color:#fbbf24;text-align:center;font-weight:bold;font-size:13px;">${p.quantity}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #27272a;color:#ffffff;text-align:right;font-size:13px;">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</td>
     </tr>
   `).join('');
 
@@ -121,67 +123,113 @@ async function sendOrderEmail(order) {
   <!DOCTYPE html>
   <html>
   <head><meta charset="utf-8"></head>
-  <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
-    <div style="max-width:600px;margin:0 auto;padding:30px 20px;">
-      <div style="text-align:center;margin-bottom:30px;">
-        <h1 style="color:#fbbf24;font-size:28px;margin:0;font-family:Georgia,serif;">MHQ Reseller</h1>
-        <p style="color:#71717a;margin:4px 0 0 0;font-size:13px;">(Broker)</p>
-      </div>
+  <body style="margin:0;padding:0;background:#09090b;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#e4e4e7;">
+    <div style="max-width:600px;margin:20px auto;background:#18181b;border:1px solid #d9770640;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
       
-      <div style="background:#111;border:1px solid #fbbf2430;border-radius:16px;padding:24px;margin-bottom:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #222;">
+      <!-- Brand Header -->
+      <div style="background:#000000;padding:26px 20px;text-align:center;border-bottom:2px solid #f59e0b;">
+        <h1 style="color:#ffffff;font-size:26px;margin:0;font-family:Georgia,serif;letter-spacing:1px;">MHQ Reseller <span style="color:#fbbf24;font-size:16px;font-weight:normal;">(Broker)</span></h1>
+        <p style="color:#a1a1aa;margin:5px 0 0 0;font-size:11px;text-transform:uppercase;letter-spacing:2px;">New Customer Order Notification</p>
+      </div>
+
+      <div style="padding:24px;">
+        <!-- Order Serial Banner -->
+        <div style="background:#27272a;border:1px solid #fbbf2440;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <p style="color:#71717a;font-size:12px;margin:0 0 4px 0;text-transform:uppercase;letter-spacing:1px;">New Order Received</p>
-            <p style="color:#fbbf24;font-size:20px;font-weight:700;margin:0;font-family:monospace;">${order.orderId || order._id.toString().slice(-6)}</p>
+            <div style="color:#a1a1aa;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">Order Serial ID</div>
+            <div style="color:#fbbf24;font-size:24px;font-weight:900;font-family:monospace;letter-spacing:1.5px;margin-top:2px;">${order.orderId || ('#' + order._id.toString().slice(-6))}</div>
           </div>
-          <div style="background:#fbbf2420;border:1px solid #fbbf2440;border-radius:8px;padding:6px 14px;">
-            <p style="color:#fbbf24;font-weight:700;margin:0;font-size:13px;">Pending</p>
+          <div style="text-align:right;">
+            <span style="background:#f59e0b;color:#000000;font-weight:bold;font-size:12px;padding:4px 10px;border-radius:20px;">PENDING COD</span>
           </div>
         </div>
-        
-        <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;">Customer Details</h3>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:4px 0;color:#71717a;font-size:13px;width:40%;">Name</td><td style="padding:4px 0;color:#e5e5e5;font-size:13px;font-weight:600;">${order.customerDetails.fullName}</td></tr>
-          <tr><td style="padding:4px 0;color:#71717a;font-size:13px;">Phone</td><td style="padding:4px 0;color:#e5e5e5;font-size:13px;">${order.customerDetails.phoneNo}</td></tr>
-          <tr><td style="padding:4px 0;color:#71717a;font-size:13px;">Address</td><td style="padding:4px 0;color:#e5e5e5;font-size:13px;">${order.customerDetails.houseNo}, ${order.customerDetails.streetNameNo}, ${order.customerDetails.areaName}</td></tr>
-          <tr><td style="padding:4px 0;color:#71717a;font-size:13px;">City</td><td style="padding:4px 0;color:#e5e5e5;font-size:13px;">${order.customerDetails.city}, ${order.customerDetails.province}</td></tr>
-          ${order.customerDetails.email ? `<tr><td style="padding:4px 0;color:#71717a;font-size:13px;">Email</td><td style="padding:4px 0;color:#e5e5e5;font-size:13px;">${order.customerDetails.email}</td></tr>` : ''}
-          ${order.customerDetails.famousPlace ? `<tr><td style="padding:4px 0;color:#71717a;font-size:13px;">Landmark</td><td style="padding:4px 0;color:#e5e5e5;font-size:13px;">${order.customerDetails.famousPlace}</td></tr>` : ''}
-        </table>
-      </div>
-      
-      <div style="background:#111;border:1px solid #fbbf2430;border-radius:16px;padding:24px;margin-bottom:20px;">
-        <h3 style="color:#fbbf24;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 16px 0;">Order Items</h3>
-        <table style="width:100%;border-collapse:collapse;">
-          <thead>
-            <tr style="background:#1a1a1a;">
-              <th style="padding:8px 12px;text-align:left;color:#71717a;font-size:12px;font-weight:600;">Product</th>
-              <th style="padding:8px 12px;text-align:center;color:#71717a;font-size:12px;font-weight:600;">Qty</th>
-              <th style="padding:8px 12px;text-align:right;color:#71717a;font-size:12px;font-weight:600;">Price</th>
-              <th style="padding:8px 12px;text-align:left;color:#71717a;font-size:12px;font-weight:600;">Variant</th>
-            </tr>
-          </thead>
-          <tbody>${productsHtml}</tbody>
-        </table>
-        <div style="border-top:2px solid #fbbf2430;margin-top:12px;padding-top:12px;text-align:right;">
-          <span style="color:#71717a;font-size:14px;">Total Amount: </span>
-          <span style="color:#fbbf24;font-size:20px;font-weight:800;">Rs ${order.totalAmount}</span>
+
+        <!-- Customer Card -->
+        <div style="background:#202023;border:1px solid #2e2e33;border-radius:12px;padding:18px;margin-bottom:20px;">
+          <h3 style="color:#fbbf24;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;border-bottom:1px solid #2e2e33;padding-bottom:6px;">👤 Customer & Shipping Details</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <tr><td style="padding:4px 0;color:#a1a1aa;width:35%;">Full Name:</td><td style="padding:4px 0;color:#ffffff;font-weight:bold;">${order.customerDetails.fullName}</td></tr>
+            <tr><td style="padding:4px 0;color:#a1a1aa;">Phone Number:</td><td style="padding:4px 0;color:#fbbf24;font-weight:bold;"><a href="tel:${order.customerDetails.phoneNo}" style="color:#fbbf24;text-decoration:none;">${order.customerDetails.phoneNo}</a></td></tr>
+            <tr><td style="padding:4px 0;color:#a1a1aa;">Address:</td><td style="padding:4px 0;color:#ffffff;">House #${order.customerDetails.houseNo}, ${order.customerDetails.streetNameNo}, ${order.customerDetails.areaName}</td></tr>
+            <tr><td style="padding:4px 0;color:#a1a1aa;">City & Province:</td><td style="padding:4px 0;color:#ffffff;">${order.customerDetails.city}, ${order.customerDetails.province}</td></tr>
+            ${order.customerDetails.famousPlace ? `<tr><td style="padding:4px 0;color:#a1a1aa;">Landmark / Near:</td><td style="padding:4px 0;color:#ffffff;">${order.customerDetails.famousPlace}</td></tr>` : ''}
+            ${order.customerDetails.email ? `<tr><td style="padding:4px 0;color:#a1a1aa;">Email:</td><td style="padding:4px 0;color:#ffffff;">${order.customerDetails.email}</td></tr>` : ''}
+          </table>
         </div>
+
+        <!-- Items Table -->
+        <div style="background:#202023;border:1px solid #2e2e33;border-radius:12px;padding:18px;margin-bottom:20px;">
+          <h3 style="color:#fbbf24;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px 0;border-bottom:1px solid #2e2e33;padding-bottom:6px;">🛍️ Order Items</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#141416;">
+                <th style="padding:8px 12px;text-align:left;color:#a1a1aa;font-size:11px;text-transform:uppercase;">Product</th>
+                <th style="padding:8px 12px;text-align:center;color:#a1a1aa;font-size:11px;text-transform:uppercase;">Qty</th>
+                <th style="padding:8px 12px;text-align:right;color:#a1a1aa;font-size:11px;text-transform:uppercase;">Total</th>
+              </tr>
+            </thead>
+            <tbody>${productsHtml}</tbody>
+          </table>
+
+          <div style="border-top:2px solid #f59e0b40;margin-top:14px;padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="color:#a1a1aa;font-size:14px;">Total Payable Amount (COD):</span>
+            <span style="color:#fbbf24;font-size:22px;font-weight:900;">Rs ${Number(order.totalAmount).toLocaleString()}</span>
+          </div>
+        </div>
+
+        <p style="text-align:center;color:#52525b;font-size:11px;margin:18px 0 0 0;">
+          MHQ Reseller (Broker) Automated Order Dispatch System<br>
+          <span style="color:#71717a;font-weight:600;">Powered By MHT Devs</span>
+        </p>
       </div>
-      
-      <p style="text-align:center;color:#3f3f46;font-size:12px;margin-top:20px;">MHQ Reseller Admin Panel • This is an automated notification</p>
     </div>
   </body>
   </html>`;
 
-  const sendSmtpEmail = {
-    to: [{ email: recipientEmail }],
-    sender: { email: senderEmail, name: 'MHQ Reseller Orders' },
+  const payload = JSON.stringify({
+    sender: { name: 'MHQ Reseller Orders', email: senderEmail },
+    to: [{ email: recipientEmail, name: 'Store Owner' }],
     subject: `🛍️ New Order ${order.orderId || '#' + order._id.toString().slice(-6)} — Rs ${order.totalAmount} — ${order.customerDetails.fullName}`,
-    htmlContent,
-  };
+    htmlContent
+  });
 
-  await apiInstance.sendTransacEmail(sendSmtpEmail);
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    const options = {
+      hostname: 'api.brevo.com',
+      port: 443,
+      path: '/v3/smtp/email',
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': apiKey,
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log('[Brevo Direct API] Email successfully accepted. Status:', res.statusCode, body);
+          resolve(body);
+        } else {
+          console.error('[Brevo Direct API Error] Status:', res.statusCode, 'Body:', body);
+          reject(new Error(`Brevo HTTP ${res.statusCode}: ${body}`));
+        }
+      });
+    });
+
+    req.on('error', (e) => {
+      console.error('[Brevo Direct API Network Error]:', e.message);
+      reject(e);
+    });
+
+    req.write(payload);
+    req.end();
+  });
 }
 
 const updateStatus = async (req, res) => {
