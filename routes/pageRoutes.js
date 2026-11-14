@@ -9,49 +9,55 @@ const PUSHER_CLUSTER = process.env.PUSHER_CLUSTER || "ap2";
 
 // Homepage - fetch categories, featured products, all products server-side
 router.get('/', async (req, res) => {
-  const categories = await Category.find();
+  const categories = await Category.find().sort({ name: 1 });
   const featured = await Product.find({isFeatured: true}).populate('category','name').sort({createdAt:-1}).limit(8);
   const products = await Product.find().populate('category','name').sort({createdAt:-1});
   res.render('index', { categories, featured, products,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    title: 'MHQ Reseller - Quality Products' });
+    title: 'MHQ Reseller (Broker) - Quality Products' });
 });
 
 router.get('/products', async (req, res) => {
   const products = await Product.find().populate('category','name').sort({createdAt:-1});
-  const categories = await Category.find();
+  const categories = await Category.find().sort({ name: 1 });
   res.render('products', { products, categories,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    title: 'All Products - MHQ Reseller' });
+    title: 'All Products - MHQ Reseller (Broker)' });
 });
 
 router.get('/featuredproducts', async (req, res) => {
   const products = await Product.find({isFeatured:true}).populate('category','name').sort({createdAt:-1});
-  res.render('featuredproducts', { products,
+  const categories = await Category.find().sort({ name: 1 });
+  res.render('featuredproducts', { products, categories,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    title: 'Featured Products - MHQ Reseller' });
+    title: 'Featured Products - MHQ Reseller (Broker)' });
 });
 
 router.get('/product/:id', async (req, res) => {
   const product = await Product.findById(req.params.id).populate('category','name');
   if (!product) return res.redirect('/');
-  res.render('product-detail', { product,
+  const categories = await Category.find().sort({ name: 1 });
+  res.render('product-detail', { product, categories,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    title: product.name + ' - MHQ Reseller' });
+    title: product.name + ' - MHQ Reseller (Broker)' });
 });
 
 router.get('/cart', async (req, res) => {
   const estTimeSetting = await Setting.findOne({ key: 'estimatedDeliveryTime' });
+  const categories = await Category.find().sort({ name: 1 });
   res.render('cart', {
+    categories,
     estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    title: 'Cart - MHQ Reseller' });
+    title: 'Cart - MHQ Reseller (Broker)' });
 });
 
-router.get('/track-order', (req, res) => {
+router.get('/track-order', async (req, res) => {
+  const categories = await Category.find().sort({ name: 1 });
   res.render('track-order', {
+    categories,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    title: 'Track Your Order - MHQ Reseller'
+    title: 'Track Your Order - MHQ Reseller (Broker)'
   });
 });
 

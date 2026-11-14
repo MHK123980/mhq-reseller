@@ -1,18 +1,29 @@
 const Order = require('../models/Order');
 const OrderCounter = require('../models/OrderCounter');
 
-// Generate order ID like EA101, EB102, etc.
+// Generate order ID like MA101, MB102, MC103, etc.
 async function generateOrderId() {
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const counter = await OrderCounter.findByIdAndUpdate(
-    'order_seq',
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true }
-  );
-  const seq = counter.seq;
-  const letterIndex = Math.floor((seq - 101) / 900) % letters.length;
-  const letter = letters[letterIndex] || letters[0];
-  return `E${letter}${seq}`;
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  // If counter doesn't exist or is below 100, upsert with seq at 100 so first $inc gives 101
+  let counter = await OrderCounter.findById('order_seq');
+  if (!counter || typeof counter.seq !== 'number' || counter.seq < 100) {
+    counter = await OrderCounter.findByIdAndUpdate(
+      'order_seq',
+      { $set: { seq: 101 } },
+      { new: true, upsert: true }
+    );
+  } else {
+    counter = await OrderCounter.findByIdAndUpdate(
+      'order_seq',
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+  }
+  const seq = counter.seq; // e.g. 101, 102, 103...
+  // Pick a letter based on offset: 101 -> A, 102 -> B, ..., wraps around
+  const letterIndex = (seq - 101) % letters.length;
+  const letter = letters[letterIndex] || 'A';
+  return `M${letter}${seq}`;
 }
 
 const getAll = async (req, res) => {
@@ -68,12 +79,16 @@ const create = async (req, res) => {
     const populatedOrder = await Order.findById(order._id).populate('products.product', 'name images price');
     
     // Send Brevo email notification
-    if (process.env.BREVO_API_KEY && process.env.ADMIN_EMAIL) {
+    if (process.env.BREVO_API_KEY && (process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL)) {
       try {
+        console.log('[Email] Attempting to send order email via Brevo for order:', order.orderId);
         await sendOrderEmail(populatedOrder);
+        console.log('[Email] Brevo order notification sent successfully!');
       } catch (emailErr) {
-        console.error('Email error:', emailErr.message);
+        console.error('[Email Error] Failed to send Brevo notification:', emailErr && emailErr.response ? emailErr.response.body || emailErr.response.text : emailErr.message);
       }
+    } else {
+      console.warn('[Email Warning] BREVO_API_KEY or ADMIN_EMAIL is not set in environment variables.');
     }
     
     const pusher = req.app.get('pusher');
@@ -90,7 +105,10 @@ async function sendOrderEmail(order) {
   const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
   apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
-  const productsHtml = order.products.map(p => `
+  const recipientEmail = process.env.ADMIN_EMAIL || 'mhqreseller@gmail.com';
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.ADMIN_EMAIL || 'mhqreseller@gmail.com';
+
+  const productsHtml = (order.products || []).map(p => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#e5e5e5;">${p.product ? p.product.name : 'Unknown'}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #2a2a2a;color:#fbbf24;text-align:center;">${p.quantity}</td>
@@ -157,8 +175,8 @@ async function sendOrderEmail(order) {
   </html>`;
 
   const sendSmtpEmail = {
-    to: [{ email: process.env.ADMIN_EMAIL }],
-    sender: { email: process.env.BREVO_SENDER_EMAIL || process.env.ADMIN_EMAIL, name: 'MHQ Reseller' },
+    to: [{ email: recipientEmail }],
+    sender: { email: senderEmail, name: 'MHQ Reseller Orders' },
     subject: `🛍️ New Order ${order.orderId || '#' + order._id.toString().slice(-6)} — Rs ${order.totalAmount} — ${order.customerDetails.fullName}`,
     htmlContent,
   };

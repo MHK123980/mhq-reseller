@@ -28,8 +28,10 @@
           <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </div>
         <% } %>
-        <% if (p.isOutOfStock) { %><div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Out of Stock</div><% } else if (p.isLowInStock) { %><div class="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-semibold">Low Stock</div><% } %>
-        <% if (p.hasDiscount && p.discountPercent > 0) { %><div class="absolute top-2 right-2 bg-amber-500 text-black text-xs px-2 py-0.5 rounded-full font-bold"><%= p.discountPercent %>% OFF</div><% } %>
+        <div class="absolute top-2 left-2 flex flex-col gap-1 items-start z-10">
+          <% if (p.isOutOfStock) { %><span class="bg-red-600 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold shadow-md">Out of Stock</span><% } else if (p.isLowInStock) { %><span class="bg-orange-500 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold shadow-md">Low Stock</span><% } %>
+        </div>
+        <% if (p.hasDiscount && p.discountPercent > 0) { %><div class="absolute top-2 right-2 bg-amber-500 text-black text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-black shadow-md z-10"><%= p.discountPercent %>% OFF</div><% } %>
       </div>
       <div class="p-3">
         <p class="text-xs text-amber-500/70 font-medium mb-1"><%= p.category ? p.category.name : 'Uncategorized' %></p>
@@ -82,17 +84,23 @@ function addToCartFromCard(id, name, price, image, deliveryCharges, isFreeDelive
   setTimeout(() => { toast.classList.add('translate-y-20','opacity-0'); toast.classList.remove('translate-y-0','opacity-100'); }, 2000);
 }
 
-// Handle ?search= query from search overlay
+// Handle ?search= and ?category= query from search overlay or navigation
 (function() {
   const params = new URLSearchParams(window.location.search);
   const q = params.get('search');
+  const cat = params.get('category');
+  
+  if (cat) {
+    filterCat(cat);
+  }
+
   if (q && q.trim()) {
     const query = q.trim().toLowerCase();
     let found = 0;
     document.querySelectorAll('.product-card[data-id]').forEach(card => {
       const name = (card.querySelector('h3') || {}).textContent || '';
-      const cat = (card.querySelector('p') || {}).textContent || '';
-      const matches = name.toLowerCase().includes(query) || cat.toLowerCase().includes(query);
+      const catText = (card.querySelector('p') || {}).textContent || '';
+      const matches = name.toLowerCase().includes(query) || catText.toLowerCase().includes(query);
       card.style.display = matches ? '' : 'none';
       if (matches) found++;
     });

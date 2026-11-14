@@ -1,25 +1,29 @@
-<section class="min-h-screen py-24 px-4">
+<section class="min-h-screen py-20 px-3 sm:px-6">
   <div class="max-w-2xl mx-auto">
     <!-- Header -->
-    <div class="text-center mb-10">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-5">
-        <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 mb-4 shadow-lg shadow-amber-500/10">
+        <svg class="w-7 h-7 sm:w-8 sm:h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
       </div>
-      <h1 class="text-3xl md:text-4xl font-bold text-white mb-3 font-serif">Track Your <span class="text-amber-400">Order</span></h1>
-      <p class="text-zinc-400 text-sm leading-relaxed">Enter your Order ID to check delivery status and courier tracking information</p>
+      <h1 class="text-2xl sm:text-4xl font-black text-white mb-2 font-serif">Track Your <span class="text-amber-400">Order</span></h1>
+      <p class="text-zinc-400 text-xs sm:text-sm max-w-md mx-auto">Enter your Order ID (e.g. <span class="text-amber-400 font-mono font-semibold">MA101</span>) to see live progress and courier parcel status.</p>
     </div>
 
     <!-- Search Box -->
-    <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 mb-6 backdrop-blur-sm">
-      <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">Order ID</label>
-      <div class="flex gap-3">
-        <input id="order-id-input" type="text" placeholder="e.g. EA101" 
-          class="flex-1 bg-zinc-800/80 border border-zinc-700 focus:border-amber-500 text-white placeholder-zinc-600 rounded-xl px-4 py-3 text-sm outline-none transition-colors"
+    <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-6 mb-6 shadow-2xl backdrop-blur-md">
+      <label class="block text-[11px] sm:text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Order ID</label>
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <input id="order-id-input" type="text" placeholder="e.g. MA101" 
+          class="flex-1 bg-zinc-800/90 border border-zinc-700/80 focus:border-amber-500 text-white placeholder-zinc-500 rounded-xl px-4 py-3 text-sm outline-none transition-colors uppercase font-mono tracking-wider"
           onkeydown="if(event.key==='Enter') trackOrder()" />
-        <button onclick="trackOrder()" class="btn-gold px-6 py-3 text-sm flex items-center gap-2 flex-shrink-0">
+        <button onclick="trackOrder()" class="btn-gold px-6 py-3 text-sm flex items-center justify-center gap-2 flex-shrink-0 w-full sm:w-auto font-bold shadow-lg shadow-amber-500/20">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          Track
+          <span>Track Order</span>
         </button>
+      </div>
+      <div class="flex items-center gap-2 mt-3 text-[11px] text-zinc-500">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Real-time tracking enabled — updates live without refreshing</span>
       </div>
     </div>
 
@@ -30,13 +34,14 @@
 
 <style>
   .status-step { position: relative; }
-  .status-step::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: -16px; width: 2px; background: #27272a; }
+  .status-step::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: -8px; width: 2px; background: #27272a; }
   .status-step:last-child::before { display: none; }
   .status-step.done::before { background: linear-gradient(to bottom, #d97706, #27272a); }
-  .status-step.active-step::before { background: #27272a; }
 </style>
 
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
+let currentTrackedOrderId = null;
 const statusOrder = ['Pending','Packed','Ready to Ship','On Route','Out for Delivery','Delivered'];
 const statusIcons = {
   'Pending': '🕐',
@@ -52,121 +57,150 @@ const courierLinks = {
   'PostEx': 'https://postex.pk/tracking',
   'Leopard': 'https://www.leopardscourier.com/leopards_tracking/',
   'M&B': 'https://www.mnbcourier.pk/track/',
+  'Trax': 'https://trax.pk/tracking/',
+  'Call Courier': 'https://callcourier.com.pk/tracking/'
 };
 
 async function trackOrder() {
   const orderId = document.getElementById('order-id-input').value.trim().toUpperCase();
   const result = document.getElementById('track-result');
   if (!orderId) {
-    result.innerHTML = '<div class="text-center text-zinc-500 py-6">Please enter your Order ID</div>';
+    result.innerHTML = '<div class="text-center text-zinc-500 py-6 text-sm">Please enter your Order ID</div>';
     return;
   }
-  result.innerHTML = '<div class="text-center py-10 flex flex-col items-center gap-3"><div class="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div><p class="text-zinc-500 text-sm">Fetching order details…</p></div>';
+  currentTrackedOrderId = orderId;
+  result.innerHTML = '<div class="text-center py-10 flex flex-col items-center gap-3"><div class="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div><p class="text-zinc-500 text-xs sm:text-sm">Fetching order details…</p></div>';
   
   try {
     const res = await fetch(`/api/courier/${orderId}`);
     const data = await res.json();
     if (!data.success) {
-      result.innerHTML = `<div class="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center"><div class="text-3xl mb-3">❌</div><p class="text-red-400 font-semibold">${data.message || 'Order not found'}</p><p class="text-zinc-500 text-sm mt-2">Please double-check your Order ID and try again</p></div>`;
+      result.innerHTML = `<div class="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center">
+        <div class="text-3xl mb-2">❌</div>
+        <p class="text-red-400 font-semibold text-sm">${data.message || 'Order not found'}</p>
+        <p class="text-zinc-500 text-xs mt-1">Please double-check your Order ID and try again</p>
+      </div>`;
       return;
     }
     
-    const { order, tracking } = data;
-    const currentStatusIdx = statusOrder.indexOf(order.status);
-    const isCanceled = order.status === 'Canceled';
-    
-    const stepsHtml = isCanceled ? 
-      `<div class="bg-red-900/20 border border-red-500/30 rounded-xl p-4 text-center"><p class="text-red-400 font-semibold">❌ Order Canceled</p></div>` :
-      statusOrder.map((s, i) => {
-        const done = i < currentStatusIdx;
-        const active = i === currentStatusIdx;
-        return `<div class="status-step ${done ? 'done' : ''} ${active ? 'active-step' : ''} flex items-center gap-4 pb-4">
-          <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm ${active ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30' : done ? 'bg-amber-900/50 border border-amber-700/50 text-amber-600' : 'bg-zinc-800 border border-zinc-700 text-zinc-600'} font-bold">
-            ${done ? '✓' : active ? statusIcons[s] || '●' : '○'}
-          </div>
-          <div>
-            <p class="text-sm font-semibold ${active ? 'text-amber-400' : done ? 'text-zinc-400' : 'text-zinc-600'}">${s}</p>
-            ${active ? '<p class="text-xs text-amber-500/70 mt-0.5">Current Status</p>' : ''}
-          </div>
-        </div>`;
-      }).join('');
+    renderTrackingDetails(data.order, data.tracking);
+  } catch(err) {
+    result.innerHTML = '<div class="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center"><p class="text-red-400 text-sm">Something went wrong. Please check your connection and try again.</p></div>';
+  }
+}
 
-    const courierHtml = tracking ? (() => {
-      const companyName = tracking.courierCompany === 'Other' ? (tracking.courierName || 'Other') : tracking.courierCompany;
-      const trackUrl = courierLinks[tracking.courierCompany];
-      return `<div class="bg-zinc-900/60 border border-zinc-700/60 rounded-2xl p-5">
-        <div class="flex items-center gap-2 mb-3">
-          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-          <h3 class="text-sm font-semibold text-white">Courier Information</h3>
+function renderTrackingDetails(order, tracking) {
+  const result = document.getElementById('track-result');
+  const currentStatusIdx = statusOrder.indexOf(order.status);
+  const isCanceled = order.status === 'Canceled';
+  
+  const stepsHtml = isCanceled ? 
+    `<div class="bg-red-900/20 border border-red-500/30 rounded-xl p-4 text-center"><p class="text-red-400 font-semibold text-sm">❌ Order Canceled</p></div>` :
+    statusOrder.map((s, i) => {
+      const done = i < currentStatusIdx;
+      const active = i === currentStatusIdx;
+      return `<div class="status-step ${done ? 'done' : ''} flex items-center gap-3.5 pb-3.5 last:pb-0">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs sm:text-sm ${active ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/40 font-black' : done ? 'bg-amber-900/50 border border-amber-700/50 text-amber-500 font-bold' : 'bg-zinc-800 border border-zinc-700 text-zinc-600'}">
+          ${done ? '✓' : active ? (statusIcons[s] || '●') : '○'}
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-zinc-800/60 rounded-xl p-3">
-            <p class="text-xs text-zinc-500 mb-1">Courier Company</p>
-            <p class="text-white font-semibold text-sm">${companyName}</p>
-          </div>
-          <div class="bg-zinc-800/60 rounded-xl p-3">
-            <p class="text-xs text-zinc-500 mb-1">Tracking Number</p>
-            <p class="text-amber-400 font-bold text-sm font-mono">${tracking.trackingNumber}</p>
-          </div>
-        </div>
-        ${trackUrl ? `<a href="${trackUrl}${tracking.trackingNumber}" target="_blank" class="mt-3 btn-gold flex items-center justify-center gap-2 py-2.5 text-sm w-full rounded-xl">Track on ${companyName} Website <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>` : ''}
-      </div>`;
-    })() : `<div class="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-5 text-center">
-      <p class="text-zinc-500 text-sm">📦 Courier Tracking No: <span class="text-amber-400 font-semibold">CN Will Be Provided Soon</span></p>
-    </div>`;
-
-    const productsHtml = order.products && order.products.length ? order.products.map(p => `
-      <div class="flex items-center gap-3 py-2 border-b border-zinc-800/60 last:border-0">
-        ${p.product && p.product.images && p.product.images.length ? `<img src="${p.product.images[0]}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-zinc-700" />` : '<div class="w-10 h-10 rounded-lg bg-zinc-800 flex-shrink-0"></div>'}
         <div class="flex-1 min-w-0">
-          <p class="text-white text-xs font-medium truncate">${p.product ? p.product.name : 'Product'}</p>
-          ${p.selectedVariant ? `<p class="text-zinc-500 text-xs">${p.selectedVariant}</p>` : ''}
+          <p class="text-xs sm:text-sm font-semibold ${active ? 'text-amber-400' : done ? 'text-zinc-300' : 'text-zinc-600'}">${s}</p>
+          ${active ? '<p class="text-[10px] text-amber-400/80 mt-0.5">Current Live Status</p>' : ''}
         </div>
-        <div class="text-right flex-shrink-0">
-          <p class="text-zinc-400 text-xs">×${p.quantity}</p>
-          <p class="text-amber-400 text-xs font-semibold">Rs ${p.priceAtPurchase * p.quantity}</p>
-        </div>
-      </div>`).join('') : '';
+      </div>`;
+    }).join('');
 
-    result.innerHTML = `
-      <div class="space-y-4">
-        <!-- Order Header -->
-        <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 backdrop-blur-sm">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <p class="text-xs text-zinc-500 uppercase tracking-widest mb-1">Order ID</p>
-              <p class="text-amber-400 font-black text-xl font-mono">${order.orderId}</p>
-            </div>
-            <div class="text-right">
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold ${isCanceled ? 'bg-red-900/40 text-red-400 border border-red-700/40' : order.status === 'Delivered' ? 'bg-green-900/40 text-green-400 border border-green-700/40' : 'bg-amber-900/40 text-amber-400 border border-amber-700/40'}">${statusIcons[order.status] || ''} ${order.status}</span>
-              <p class="text-zinc-600 text-xs mt-1">Rs ${order.totalAmount.toLocaleString()}</p>
-            </div>
+  const courierHtml = tracking ? (() => {
+    const companyName = tracking.courierCompany === 'Other' ? (tracking.courierName || 'Other') : tracking.courierCompany;
+    const trackUrl = courierLinks[tracking.courierCompany];
+    return `<div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl">
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        <h3 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">Courier Dispatch Details</h3>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div class="bg-zinc-800/70 border border-zinc-700/50 rounded-xl p-3">
+          <p class="text-[10px] text-zinc-400 uppercase tracking-wider mb-0.5">Courier Partner</p>
+          <p class="text-white font-bold text-sm">${companyName}</p>
+        </div>
+        <div class="bg-zinc-800/70 border border-zinc-700/50 rounded-xl p-3">
+          <p class="text-[10px] text-zinc-400 uppercase tracking-wider mb-0.5">Consignment No (CN)</p>
+          <p class="text-amber-400 font-bold text-sm font-mono tracking-wider">${tracking.trackingNumber}</p>
+        </div>
+      </div>
+      ${trackUrl ? `<a href="${trackUrl}${encodeURIComponent(tracking.trackingNumber)}" target="_blank" rel="noopener noreferrer" class="mt-3 btn-gold flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm w-full rounded-xl font-bold shadow-lg shadow-amber-500/20">
+        <span>Track on ${companyName} Portal</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      </a>` : ''}
+    </div>`;
+  })() : `<div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 sm:p-5 text-center">
+    <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/10 text-amber-400 mb-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+    </div>
+    <p class="text-zinc-400 text-xs sm:text-sm">Courier Tracking No: <span class="text-amber-400 font-bold tracking-wide">CN Will Be Provided Soon</span></p>
+    <p class="text-zinc-600 text-[11px] mt-1">Once dispatched by our courier team, your tracking number will show here automatically.</p>
+  </div>`;
+
+  const productsHtml = (order.products && order.products.length) ? order.products.map(p => `
+    <div class="flex items-center gap-3 py-2.5 border-b border-zinc-800/80 last:border-0">
+      ${p.product && p.product.images && p.product.images.length ? `<img src="${p.product.images[0]}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-zinc-700 bg-zinc-800" />` : '<div class="w-11 h-11 rounded-lg bg-zinc-800 flex-shrink-0"></div>'}
+      <div class="flex-1 min-w-0">
+        <p class="text-white text-xs sm:text-sm font-semibold truncate">${p.product ? p.product.name : 'Product'}</p>
+        ${p.selectedVariant ? `<p class="text-amber-500/90 text-[11px] font-medium mt-0.5 truncate">${p.selectedVariant}</p>` : ''}
+      </div>
+      <div class="text-right flex-shrink-0">
+        <p class="text-zinc-400 text-xs">Qty: ${p.quantity}</p>
+        <p class="text-amber-400 text-xs font-bold">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</p>
+      </div>
+    </div>`).join('') : '';
+
+  result.innerHTML = `
+    <div class="space-y-4">
+      <!-- Order Header Card -->
+      <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur-md">
+        <div class="flex items-center justify-between mb-3 pb-3 border-b border-zinc-800/80">
+          <div>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold mb-0.5">Order Serial ID</p>
+            <p class="text-amber-400 font-black text-xl sm:text-2xl font-mono tracking-wider">${order.orderId}</p>
           </div>
-          <div class="text-xs text-zinc-500">Ordered: ${new Date(order.createdAt).toLocaleDateString('en-PK', { year:'numeric', month:'long', day:'numeric' })}</div>
+          <div class="text-right">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold ${isCanceled ? 'bg-red-900/40 text-red-400 border border-red-700/40' : order.status === 'Delivered' ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-700/40' : 'bg-amber-900/40 text-amber-400 border border-amber-700/40'}">
+              ${statusIcons[order.status] || ''} ${order.status}
+            </span>
+          </div>
         </div>
+        <div class="flex justify-between items-center text-xs text-zinc-400">
+          <span>Customer: <strong class="text-white">${order.customerName || 'Valued Customer'}</strong></span>
+          <span>${new Date(order.createdAt).toLocaleDateString('en-PK', { year:'numeric', month:'short', day:'numeric' })}</span>
+        </div>
+      </div>
 
-        <!-- Order Status Steps -->
-        <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 backdrop-blur-sm">
-          <h3 class="text-sm font-semibold text-white mb-4">Order Progress</h3>
+      <!-- Order Status Steps -->
+      <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur-md">
+        <h3 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          Order Progress
+        </h3>
+        <div class="space-y-1">
           ${stepsHtml}
         </div>
+      </div>
 
-        <!-- Courier Info -->
-        ${courierHtml}
+      <!-- Courier Info -->
+      ${courierHtml}
 
-        <!-- Products -->
-        <div class="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 backdrop-blur-sm">
-          <h3 class="text-sm font-semibold text-white mb-3">Items Ordered</h3>
+      <!-- Ordered Items -->
+      <div class="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xl backdrop-blur-md">
+        <h3 class="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-3">Items Ordered</h3>
+        <div class="divide-y divide-zinc-800/60">
           ${productsHtml}
-          <div class="flex justify-between items-center pt-3 border-t border-zinc-800 mt-2">
-            <span class="text-zinc-500 text-sm">Total</span>
-            <span class="text-amber-400 font-bold">Rs ${order.totalAmount.toLocaleString()}</span>
-          </div>
         </div>
-      </div>`;
-  } catch(err) {
-    result.innerHTML = '<div class="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center"><p class="text-red-400">Something went wrong. Please try again.</p></div>';
-  }
+        <div class="flex justify-between items-center pt-3 border-t border-zinc-800 mt-2">
+          <span class="text-zinc-400 text-xs sm:text-sm font-medium">Total Amount</span>
+          <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${order.totalAmount.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>`;
 }
 
 // Auto track if ?id= parameter is present
@@ -178,4 +212,26 @@ window.addEventListener('DOMContentLoaded', () => {
     trackOrder();
   }
 });
+
+// Setup Pusher for live real-time tracking updates
+try {
+  const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+  const channel = pusher.subscribe('mhq-reseller');
+  
+  // Real-time order status update
+  channel.bind('order:updated', (order) => {
+    if (currentTrackedOrderId && (order.orderId === currentTrackedOrderId || order._id === currentTrackedOrderId)) {
+      trackOrder();
+    }
+  });
+
+  // Real-time courier CN assignment
+  channel.bind('tracking:updated', (data) => {
+    if (currentTrackedOrderId && data.orderId === currentTrackedOrderId) {
+      trackOrder();
+    }
+  });
+} catch(e) {
+  console.warn('Real-time tracking listener failed to initialize', e);
+}
 </script>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="50%" stop-color="#09090b"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+
+    <!-- Luxury Gold Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="35%" stop-color="#f59e0b"/>
+      <stop offset="70%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <!-- Glowing Accent -->
+    <linearGradient id="goldGlow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.1"/>
+    </linearGradient>
+    
+    <!-- Filter for subtle drop shadow -->
+    <filter id="luxuryGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Hexagonal / Shield Luxury Border -->
+  <rect x="6" y="6" width="148" height="148" rx="36" fill="url(#bgGrad)" stroke="url(#goldGrad)" stroke-width="3"/>
+  <rect x="12" y="12" width="136" height="136" rx="30" fill="none" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4 3"/>
+
+  <!-- Geometric Luxury Diamond Top -->
+  <polygon points="80,24 88,34 80,44 72,34" fill="url(#goldGrad)"/>
+
+  <!-- Monogram Logo Mark 'MHQ' Stylized -->
+  <!-- Letter M -->
+  <path d="M 38 108 L 38 56 L 56 82 L 74 56 L 74 108" fill="none" stroke="url(#goldGrad)" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Letter H integrated -->
+  <line x1="88" y1="56" x2="88" y2="108" stroke="url(#goldGrad)" stroke-width="8.5" stroke-linecap="round"/>
+  <line x1="88" y1="82" x2="122" y2="82" stroke="url(#goldGrad)" stroke-width="7" stroke-linecap="round"/>
+  <line x1="122" y1="56" x2="122" y2="108" stroke="url(#goldGrad)" stroke-width="8.5" stroke-linecap="round"/>
+
+  <!-- Letter Q diagonal slash accent / loop -->
+  <circle cx="105" cy="82" r="16" fill="none" stroke="url(#goldGrad)" stroke-width="4.5" stroke-opacity="0.65"/>
+  <path d="M 116 93 L 128 108" stroke="#fbbf24" stroke-width="6.5" stroke-linecap="round"/>
+
+  <!-- Bottom Stars Rating Accent -->
+  <circle cx="68" cy="126" r="2.5" fill="#fbbf24"/>
+  <circle cx="80" cy="126" r="3.5" fill="#fbbf24"/>
+  <circle cx="92" cy="126" r="2.5" fill="#fbbf24"/>
+</svg>

@@ -29,7 +29,19 @@ const save = async (req, res) => {
     );
     
     // Also save on the order itself for easy lookup
-    await Order.findByIdAndUpdate(order._id, { courierCompany, courierTrackingNo: trackingNumber });
+    const updatedOrder = await Order.findByIdAndUpdate(order._id, { courierCompany, courierTrackingNo: trackingNumber }, { new: true });
+    
+    // Trigger real-time Pusher event for tracking page
+    const pusher = req.app.get('pusher');
+    if (pusher) {
+      await pusher.trigger('mhq-reseller', 'tracking:updated', {
+        orderId,
+        courierCompany,
+        courierName: courierName || '',
+        trackingNumber,
+        status: updatedOrder.status
+      });
+    }
     
     res.json({ success: true, tracking });
   } catch (error) {

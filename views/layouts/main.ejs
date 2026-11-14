@@ -175,15 +175,14 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
-        <a href="/" class="flex items-center gap-2 group flex-shrink-0">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:shadow-amber-500/40 transition-shadow">
-            <span class="text-black font-black text-sm leading-none">M</span>
+        <a href="/" class="flex items-center gap-2.5 group flex-shrink-0">
+          <img src="/mhq-logo.svg" alt="MHQ Reseller Logo" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-contain shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform" />
+          <div class="flex flex-col">
+            <span class="text-white font-bold text-base sm:text-lg tracking-tight font-serif leading-none">
+              MHQ Reseller <span class="text-amber-400 font-normal text-xs sm:text-sm">(Broker)</span>
+            </span>
+            <span class="text-[10px] text-zinc-500 tracking-widest uppercase font-medium mt-0.5">Wholesale & Retail</span>
           </div>
-          <div class="hidden sm:block">
-            <span class="text-white font-bold text-base tracking-tight font-serif">MHQ Reseller</span>
-            <span class="text-zinc-500 text-xs ml-1">(Broker)</span>
-          </div>
-          <span class="sm:hidden text-white font-bold text-base font-serif">MHQ</span>
         </a>
 
         <!-- Desktop Nav Links -->
@@ -223,28 +222,57 @@
     </div>
 
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-zinc-800/80 bg-zinc-950/95 backdrop-blur-xl">
-      <div class="px-4 py-3 space-y-1">
-        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/5 transition-all text-sm font-medium">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-zinc-800/80 bg-zinc-950/98 backdrop-blur-2xl max-h-[85vh] overflow-y-auto">
+      <div class="px-4 py-4 space-y-2">
+        <a href="/" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+          <svg class="w-4 h-4 text-amber-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           Home
         </a>
-        <a href="/products" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/5 transition-all text-sm font-medium">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        <a href="/products" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+          <svg class="w-4 h-4 text-amber-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
           All Products
         </a>
-        <a href="/featuredproducts" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/5 transition-all text-sm font-medium">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-          Featured
+        <a href="/featuredproducts" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          Featured Products
         </a>
-        <a href="/track-order" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/5 transition-all text-sm font-medium">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        <a href="/track-order" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+          <svg class="w-4 h-4 text-amber-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
           Track Order
         </a>
-        <div class="pt-2 pb-1">
-          <a href="/cart" class="btn-gold flex items-center justify-center gap-2 py-2.5 text-sm w-full">
+
+        <!-- Categories Dropdown in Mobile Menu -->
+        <div class="border-t border-zinc-800/80 pt-2">
+          <button type="button" onclick="toggleMobileCategories()" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+            <span class="flex items-center gap-3">
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+              Browse Categories
+            </span>
+            <svg id="mob-cat-arrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          
+          <div id="mob-categories-dropdown" class="hidden mt-2 px-2 py-2 bg-zinc-900/80 rounded-2xl border border-zinc-800/80">
+            <!-- Search categories inside mobile drawer -->
+            <div class="relative mb-2 px-1">
+              <input type="text" id="mob-cat-search-input" placeholder="Search categories..." oninput="filterMobileCatList(this.value)"
+                class="w-full bg-zinc-800/90 text-white placeholder-zinc-500 text-xs px-3 py-2 rounded-xl border border-zinc-700/60 focus:border-amber-500 outline-none" />
+              <svg class="w-3.5 h-3.5 text-zinc-500 absolute right-3.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <div id="mob-categories-list" class="max-h-48 overflow-y-auto space-y-1 pr-1">
+              <a href="/products" class="mob-cat-item block px-3 py-2 rounded-lg text-xs text-amber-400 font-semibold hover:bg-amber-500/10 transition-colors">✦ All Products</a>
+              <% (typeof categories !== 'undefined' ? categories : []).forEach(c => { %>
+              <a href="/products?category=<%= c._id %>" data-name="<%= c.name.toLowerCase() %>" class="mob-cat-item block px-3 py-1.5 rounded-lg text-xs text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+                <%= c.name %>
+              </a>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-3 pb-1 border-t border-zinc-800/80">
+          <a href="/cart" class="btn-gold flex items-center justify-center gap-2 py-3 text-sm w-full font-bold shadow-lg shadow-amber-500/20">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            View Cart
+            View Cart & Checkout
           </a>
         </div>
       </div>
@@ -342,6 +370,23 @@
       menu.classList.toggle('hidden', !isHidden);
       iconOpen.classList.toggle('hidden', isHidden);
       iconClose.classList.toggle('hidden', !isHidden);
+    }
+
+    function toggleMobileCategories() {
+      const drop = document.getElementById('mob-categories-dropdown');
+      const arrow = document.getElementById('mob-cat-arrow');
+      const isHidden = drop.classList.contains('hidden');
+      drop.classList.toggle('hidden', !isHidden);
+      if (arrow) arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function filterMobileCatList(val) {
+      const query = (val || '').toLowerCase().trim();
+      document.querySelectorAll('#mob-categories-list .mob-cat-item').forEach(el => {
+        const name = el.getAttribute('data-name');
+        if (!name) return; // skip 'All Products'
+        el.style.display = name.includes(query) ? 'block' : 'none';
+      });
     }
 
     // Search
