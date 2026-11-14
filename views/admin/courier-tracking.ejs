@@ -1,0 +1,143 @@
+<div class="p-6 max-w-5xl mx-auto">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-1">Courier Tracking</h1>
+      <p class="text-zinc-400 text-sm">Assign courier tracking numbers (Consignment Notes) to customer orders</p>
+    </div>
+  </div>
+
+  <!-- Add/Update Form -->
+  <div class="bg-zinc-900 border border-zinc-700/80 rounded-2xl p-6 mb-8 shadow-xl">
+    <h2 class="text-lg font-semibold text-white mb-5 flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+      Add / Update Tracking
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Order ID</label>
+        <input id="ct-order-id" type="text" placeholder="e.g. EA101" list="orders-list"
+          class="w-full bg-zinc-800/90 border border-zinc-700 focus:border-amber-500 text-white placeholder-zinc-500 rounded-xl px-4 py-3 text-sm outline-none transition-colors uppercase font-mono" />
+        <datalist id="orders-list">
+          <% (typeof orders !== 'undefined' ? orders : []).forEach(o => { %>
+          <option value="<%= o.orderId %>"><%= o.customerDetails ? o.customerDetails.fullName : '' %> — Rs <%= o.totalAmount %></option>
+          <% }) %>
+        </datalist>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Courier Company</label>
+        <select id="ct-courier" class="w-full bg-zinc-800/90 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" onchange="toggleOtherName(this.value)">
+          <option value="">Select Courier</option>
+          <option value="TCS">TCS</option>
+          <option value="PostEx">PostEx</option>
+          <option value="Leopard">Leopard Courier</option>
+          <option value="M&B">M&B Courier</option>
+          <option value="Trax">Trax Logistics</option>
+          <option value="Call Courier">Call Courier</option>
+          <option value="Other">Other (Specify)</option>
+        </select>
+      </div>
+      <div id="other-name-wrap" class="hidden">
+        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Courier Name</label>
+        <input id="ct-courier-name" type="text" placeholder="Enter courier company name"
+          class="w-full bg-zinc-800/90 border border-zinc-700 focus:border-amber-500 text-white placeholder-zinc-500 rounded-xl px-4 py-3 text-sm outline-none transition-colors" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-2">Tracking / Consignment Number (CN)</label>
+        <input id="ct-tracking-no" type="text" placeholder="Enter courier tracking / CN number"
+          class="w-full bg-zinc-800/90 border border-zinc-700 focus:border-amber-500 text-white placeholder-zinc-500 rounded-xl px-4 py-3 text-sm outline-none transition-colors font-mono" />
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="saveCourierTracking()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Save Tracking
+      </button>
+      <span id="ct-msg" class="text-sm hidden"></span>
+    </div>
+  </div>
+
+  <!-- Existing Trackings -->
+  <h2 class="text-lg font-semibold text-white mb-4">Saved Trackings (<span id="tracking-count"><%= (typeof trackings !== 'undefined' ? trackings.length : 0) %></span>)</h2>
+  <div class="space-y-3" id="trackings-list">
+    <% if (typeof trackings === 'undefined' || trackings.length === 0) { %>
+    <div class="text-center py-12 text-zinc-500 bg-zinc-900/50 rounded-2xl border border-zinc-800" id="no-trackings">No courier trackings added yet.</div>
+    <% } else { %>
+      <% trackings.forEach(t => { %>
+      <div class="bg-zinc-900 border border-zinc-700/80 rounded-xl p-4 flex items-center justify-between gap-4" id="tracking-row-<%= t._id %>">
+        <div class="flex items-center gap-4">
+          <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5">
+            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+          </div>
+          <div>
+            <p class="text-amber-400 font-bold font-mono text-sm tracking-wider"><%= t.orderId %></p>
+            <p class="text-zinc-300 text-xs mt-0.5"><%= t.courierCompany === 'Other' ? (t.courierName || 'Other') : t.courierCompany %></p>
+            <p class="text-zinc-500 text-xs mt-0.5">CN: <span class="text-white font-mono font-medium"><%= t.trackingNumber %></span></p>
+          </div>
+        </div>
+        <button onclick="deleteTracking('<%= t._id %>')" class="text-zinc-500 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-500/10" title="Delete Tracking">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
+
+<script>
+function toggleOtherName(val) {
+  document.getElementById('other-name-wrap').classList.toggle('hidden', val !== 'Other');
+}
+
+async function saveCourierTracking() {
+  const orderId = document.getElementById('ct-order-id').value.trim().toUpperCase();
+  const courierCompany = document.getElementById('ct-courier').value;
+  const courierName = document.getElementById('ct-courier-name').value.trim();
+  const trackingNumber = document.getElementById('ct-tracking-no').value.trim();
+  const msg = document.getElementById('ct-msg');
+
+  if (!orderId || !courierCompany || !trackingNumber) {
+    msg.textContent = 'Please fill all required fields.';
+    msg.className = 'text-sm text-red-400';
+    msg.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/courier', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, courierCompany, courierName, trackingNumber })
+    });
+    const data = await res.json();
+    if (data.success) {
+      msg.textContent = '✓ Tracking saved successfully!';
+      msg.className = 'text-sm text-emerald-400 font-medium';
+      msg.classList.remove('hidden');
+      setTimeout(() => location.reload(), 800);
+    } else {
+      msg.textContent = data.message || 'Error saving tracking.';
+      msg.className = 'text-sm text-red-400';
+      msg.classList.remove('hidden');
+    }
+  } catch(err) {
+    msg.textContent = 'Network error. Try again.';
+    msg.className = 'text-sm text-red-400';
+    msg.classList.remove('hidden');
+  }
+}
+
+async function deleteTracking(id) {
+  if (!confirm('Are you sure you want to delete this courier tracking?')) return;
+  try {
+    const res = await fetch('/api/courier/' + id, { method: 'DELETE' });
+    if(res.ok) {
+      document.getElementById('tracking-row-' + id)?.remove();
+      const count = document.querySelectorAll('[id^="tracking-row-"]').length;
+      document.getElementById('tracking-count').textContent = count;
+      if (count === 0) {
+        document.getElementById('trackings-list').innerHTML = '<div class="text-center py-12 text-zinc-500 bg-zinc-900/50 rounded-2xl border border-zinc-800" id="no-trackings">No courier trackings added yet.</div>';
+      }
+    }
+  } catch(err) { alert('Error deleting tracking.'); }
+}
+</script>

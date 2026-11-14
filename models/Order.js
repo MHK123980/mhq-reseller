@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const orderSchema = new mongoose.Schema({
+  orderId: { type: String, unique: true, sparse: true },
+  courierCompany: { type: String, default: '' },
+  courierTrackingNo: { type: String, default: '' },
   customerDetails: {
     fullName: { type: String, required: true },
     phoneNo: { type: String, required: true },

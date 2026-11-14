@@ -46,6 +46,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
+const courierRoutes = require('./routes/courierRoutes');
 
 app.use(async (req, res, next) => { await connectDB(); next(); });
 
@@ -54,6 +55,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/courier', courierRoutes);
 
 const Setting = require('./models/Setting');
 const { protectAPI } = require('./middleware/auth');

@@ -29,7 +29,7 @@
       <div class="flex items-start justify-between mb-4 border-b border-zinc-800 pb-4 mt-2">
         <div>
           <p class="text-xs text-zinc-500 mb-1">Order ID</p>
-          <p class="text-sm font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md inline-block">#<%= o._id.toString().slice(-6) %></p>
+          <p class="text-sm font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md inline-block"><%= o.orderId || ('#' + o._id.toString().slice(-6)) %></p>
         </div>
         <select onchange="updateOrderStatus('<%= o._id %>', this.value)" class="bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-2 py-1 outline-none focus:border-amber-500 font-semibold
           <%= o.status === 'Pending' ? 'text-amber-400' : '' %>
@@ -509,7 +509,7 @@ function createOrderCardHtml(o) {
       <div class="flex items-start justify-between mb-4 border-b border-zinc-800 pb-4 mt-2">
         <div>
           <p class="text-xs text-zinc-500 mb-1">Order ID</p>
-          <p class="text-sm font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md inline-block">#${o._id.toString().slice(-6)}</p>
+          <p class="text-sm font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md inline-block">${o.orderId || ('#' + o._id.toString().slice(-6))}</p>
         </div>
         <select onchange="updateOrderStatus('${o._id}', this.value)" class="bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-2 py-1 outline-none focus:border-amber-500 font-semibold ${statusColor}">
           ${['Pending','Packed','Ready to Ship','On Route','Out for Delivery','Delivered','Canceled'].map(s => 

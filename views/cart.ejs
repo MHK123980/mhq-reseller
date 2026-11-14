@@ -107,11 +107,23 @@
       </div>
       <h2 class="text-2xl font-bold text-white mb-2">Order Placed! 🎉</h2>
       <p class="text-zinc-400 mb-2 text-sm">Your order has been received. We'll contact you soon for confirmation.</p>
-      <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-6">
-        <p class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-1">Estimated Delivery Time</p>
-        <p class="text-white font-bold"><%= estimatedDeliveryTime %></p>
+      <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-3">
+        <p class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-1">Your Order ID</p>
+        <p id="placed-order-id" class="text-amber-400 font-mono font-black text-xl tracking-widest">-</p>
+        <p class="text-zinc-500 text-[11px] mt-1">Save this ID to track your order anytime!</p>
       </div>
-      <a href="/" class="block bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-full transition-all text-sm">Back to Home</a>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 mb-4">
+        <p class="text-zinc-400 text-xs uppercase tracking-wider mb-0.5">Estimated Delivery</p>
+        <p class="text-white font-semibold text-sm"><%= estimatedDeliveryTime %></p>
+      </div>
+      <div class="space-y-2">
+        <a id="track-order-link" href="/track-order" class="block w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 rounded-xl transition-all text-sm">
+          Track Your Order →
+        </a>
+        <a href="/" class="block w-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 font-medium py-2 rounded-xl transition-all text-xs">
+          Continue Shopping
+        </a>
+      </div>
     </div>
   </div>
 </section>
@@ -230,6 +242,13 @@ async function placeOrder(e) {
       localStorage.removeItem('mhq_cart');
       updateCartCount();
       document.getElementById('checkout-modal').classList.add('hidden');
+      const orderId = (data.order && data.order.orderId) ? data.order.orderId : (data.order ? '#' + data.order._id.slice(-6) : '');
+      const placedIdEl = document.getElementById('placed-order-id');
+      if (placedIdEl) placedIdEl.textContent = orderId;
+      const trackLink = document.getElementById('track-order-link');
+      if (trackLink && data.order && data.order.orderId) {
+        trackLink.href = '/track-order?id=' + encodeURIComponent(data.order.orderId);
+      }
       document.getElementById('success-modal').classList.remove('hidden');
     } else {
       alert(data.message || 'Error placing order. Please try again.');

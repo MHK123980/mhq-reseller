@@ -1,14 +1,15 @@
 <section class="py-24 px-4 max-w-7xl mx-auto">
   <div class="mb-8">
-    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">All <span class="text-amber-400">Products</span></h1>
-    <p class="text-zinc-400">Browse our complete collection</p>
+    <div class="inline-block border border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-3 tracking-widest uppercase">✨ Exclusive Catalog</div>
+    <h1 class="text-3xl md:text-5xl font-bold text-white mb-2 font-serif">All <span class="text-amber-400">Products</span></h1>
+    <p class="text-zinc-400">Browse our complete luxury collection with live stock & fast dispatch</p>
   </div>
 
   <!-- Category Filter -->
-  <div class="flex flex-wrap gap-3 mb-8" id="cat-filter">
-    <button onclick="filterCat('all')" class="cat-btn active-cat px-5 py-2 rounded-full border border-amber-500 bg-amber-500/20 text-amber-400 text-sm font-medium transition-all" data-cat="all">All</button>
+  <div class="flex flex-wrap gap-2.5 mb-8" id="cat-filter">
+    <button onclick="filterCat('all')" class="cat-pill active-cat" data-cat="all">✦ All Products</button>
     <% categories.forEach(c => { %>
-    <button onclick="filterCat('<%= c._id %>')" class="cat-btn px-5 py-2 rounded-full border border-zinc-700 hover:border-amber-500 text-zinc-300 hover:text-amber-400 text-sm font-medium transition-all" data-cat="<%= c._id %>"><%= c.name %></button>
+    <button onclick="filterCat('<%= c._id %>')" class="cat-pill" data-cat="<%= c._id %>"><%= c.name %></button>
     <% }) %>
   </div>
 
@@ -60,12 +61,11 @@
 
 <script>
 function filterCat(catId) {
-  document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.classList.remove('active-cat','bg-amber-500/20','text-amber-400','border-amber-500');
-    btn.classList.add('border-zinc-700','text-zinc-300');
+  document.querySelectorAll('.cat-pill').forEach(btn => {
+    btn.classList.remove('active-cat');
   });
-  const active = document.querySelector(`.cat-btn[data-cat="${catId}"]`);
-  if (active) { active.classList.add('active-cat','bg-amber-500/20','text-amber-400','border-amber-500'); active.classList.remove('border-zinc-700','text-zinc-300'); }
+  const active = document.querySelector(`.cat-pill[data-cat="${catId}"]`);
+  if (active) active.classList.add('active-cat');
   document.querySelectorAll('.product-card[data-id]').forEach(card => {
     card.style.display = (catId === 'all' || card.dataset.cat === catId) ? '' : 'none';
   });

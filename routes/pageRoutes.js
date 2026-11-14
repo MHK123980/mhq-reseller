@@ -10,7 +10,7 @@ const PUSHER_CLUSTER = process.env.PUSHER_CLUSTER || "ap2";
 // Homepage - fetch categories, featured products, all products server-side
 router.get('/', async (req, res) => {
   const categories = await Category.find();
-  const featured = await Product.find({isFeatured: true}).populate('category','name').limit(8);
+  const featured = await Product.find({isFeatured: true}).populate('category','name').sort({createdAt:-1}).limit(8);
   const products = await Product.find().populate('category','name').sort({createdAt:-1});
   res.render('index', { categories, featured, products,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
@@ -26,7 +26,7 @@ router.get('/products', async (req, res) => {
 });
 
 router.get('/featuredproducts', async (req, res) => {
-  const products = await Product.find({isFeatured:true}).populate('category','name');
+  const products = await Product.find({isFeatured:true}).populate('category','name').sort({createdAt:-1});
   res.render('featuredproducts', { products,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     title: 'Featured Products - MHQ Reseller' });
@@ -46,6 +46,13 @@ router.get('/cart', async (req, res) => {
     estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     title: 'Cart - MHQ Reseller' });
+});
+
+router.get('/track-order', (req, res) => {
+  res.render('track-order', {
+    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+    title: 'Track Your Order - MHQ Reseller'
+  });
 });
 
 // Admin pages
@@ -88,6 +95,16 @@ router.get('/admin/dashboard/orders', protect, async (req, res) => {
   res.render('admin/orders', { layout: 'layouts/admin', orders,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Orders - MHQ Admin' });
+});
+
+router.get('/admin/dashboard/courier-tracking', protect, async (req, res) => {
+  const Order = require('../models/Order');
+  const CourierTracking = require('../models/CourierTracking');
+  const orders = await Order.find({ orderId: { $exists: true, $ne: '' } }).select('orderId customerDetails.fullName totalAmount status').sort({ createdAt: -1 });
+  const trackings = await CourierTracking.find().populate('order', 'orderId customerDetails.fullName').sort({ createdAt: -1 });
+  res.render('admin/courier-tracking', { layout: 'layouts/admin', orders, trackings,
+    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+    user: req.user, title: 'Courier Tracking - MHQ Admin' });
 });
 
 router.get('/admin/dashboard/users', protect, async (req, res) => {
