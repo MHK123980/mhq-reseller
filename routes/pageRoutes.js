@@ -7,6 +7,49 @@ const { protect } = require('../middleware/auth');
 const PUSHER_KEY = process.env.PUSHER_KEY || "f713f77ab9e98a84ccf7";
 const PUSHER_CLUSTER = process.env.PUSHER_CLUSTER || "ap2";
 
+// Dynamic XML Sitemap for Google Search Console
+router.get('/sitemap.xml', async (req, res) => {
+  res.header('Content-Type', 'application/xml');
+  try {
+    const products = await Product.find().select('_id updatedAt').lean();
+    const baseUrl = 'https://mhqreseller.vercel.app';
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/products</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/featuredproducts</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/track-order</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`;
+    (products || []).forEach(p => {
+      xml += `
+  <url>
+    <loc>${baseUrl}/product/${p._id}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+    });
+    xml += `\n</urlset>`;
+    res.send(xml);
+  } catch(e) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
 // Homepage - fetch categories, featured products, all products server-side in parallel with lean()
 router.get('/', async (req, res) => {
   try {
