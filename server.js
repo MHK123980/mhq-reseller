@@ -48,6 +48,11 @@ const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const courierRoutes = require('./routes/courierRoutes');
 
+// Google Search Console verification file route
+app.get('/google3757840108824473.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'google3757840108824473.html'));
+});
+
 app.use(async (req, res, next) => { await connectDB(); next(); });
 
 // In-memory cache for global sale announcement (30s TTL, instant page loads)
