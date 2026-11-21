@@ -19,14 +19,15 @@
       <!-- Summary -->
       <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-5 mb-4 sticky top-24">
         <h2 class="text-lg font-bold text-white mb-4">Order Summary</h2>
-        <div class="space-y-2 text-sm mb-4">
-          <div class="flex justify-between text-zinc-400"><span>Subtotal</span><span id="summary-subtotal">Rs 0</span></div>
+        <div class="space-y-2.5 text-sm mb-4">
+          <div class="flex justify-between text-zinc-400"><span>Items Subtotal</span><span id="summary-subtotal">Rs 0</span></div>
           <div class="flex justify-between text-zinc-400"><span>Delivery</span><span id="summary-delivery">Rs 0</span></div>
           <div class="border-t border-zinc-700 pt-3 flex justify-between text-white font-bold text-base">
-            <span>Total</span><span id="summary-total" class="text-amber-400">Rs 0</span>
+            <span>Estimated Total</span><span id="summary-total" class="text-amber-400">Rs 0</span>
           </div>
+          <p class="text-zinc-500 text-[11px] leading-tight">Sales tax (2% - 6%) will be calculated based on your selected payment method at checkout.</p>
         </div>
-        <button onclick="showCheckout()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-full transition-all text-sm">
+        <button onclick="showCheckout()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3.5 rounded-full transition-all text-sm shadow-lg shadow-amber-600/30">
           Proceed to Checkout
         </button>
       </div>
@@ -34,93 +35,248 @@
   </div>
 
   <!-- Checkout Form Modal -->
-  <div id="checkout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-    <div class="bg-zinc-950 border border-zinc-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-white">Checkout Details</h2>
-        <button onclick="document.getElementById('checkout-modal').classList.add('hidden')" class="text-zinc-400 hover:text-white transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+  <div id="checkout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
+    <div class="bg-zinc-950 border border-zinc-700 rounded-3xl w-full max-w-xl max-h-[92vh] overflow-y-auto p-5 sm:p-7 shadow-2xl relative">
+      <div class="flex items-center justify-between mb-5 pb-3 border-b border-zinc-800">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">Complete Your Order</h2>
+          <p class="text-xs text-zinc-400">Fill delivery details & choose payment method</p>
+        </div>
+        <button onclick="document.getElementById('checkout-modal').classList.add('hidden')" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <form id="checkout-form" onsubmit="placeOrder(event)" class="space-y-4">
+
+      <form id="checkout-form" onsubmit="placeOrder(event)" class="space-y-5">
+        
+        <!-- Dedicated Scrollable Ordered Products Container -->
         <div>
-          <label class="block text-sm text-zinc-400 mb-1">Full Name *</label>
-          <input type="text" name="fullName" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Enter your full name"/>
-        </div>
-        <div>
-          <label class="block text-sm text-zinc-400 mb-1">Phone Number *</label>
-          <input type="tel" name="phoneNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="03XXXXXXXXX"/>
-        </div>
-        <div>
-          <label class="block text-sm text-zinc-400 mb-1">House No. *</label>
-          <input type="text" name="houseNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="House/Flat number"/>
-        </div>
-        <div>
-          <label class="block text-sm text-zinc-400 mb-1">Street Name/No. *</label>
-          <input type="text" name="streetNameNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Street name or number"/>
-        </div>
-        <div>
-          <label class="block text-sm text-zinc-400 mb-1">Area Name *</label>
-          <input type="text" name="areaName" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Colony / Area name"/>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm text-zinc-400 mb-1">City *</label>
-            <input type="text" name="city" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="City"/>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Order Items Review</label>
+          <div id="checkout-products-container" class="max-h-36 overflow-y-auto space-y-2 pr-1 border border-zinc-800 bg-zinc-900/50 rounded-2xl p-2.5">
+            <!-- Dynamically populated -->
           </div>
-          <div>
-            <label class="block text-sm text-zinc-400 mb-1">Province *</label>
-            <select name="province" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors">
-              <option value="">Select</option>
-              <option>Punjab</option><option>Sindh</option><option>KPK</option><option>Balochistan</option>
-              <option>AJK</option><option>Gilgit-Baltistan</option><option>Islamabad</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="block text-sm text-zinc-400 mb-1">Famous Place / Landmark</label>
-          <input type="text" name="famousPlace" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Near mosque, school, etc. (optional)"/>
-        </div>
-        <div>
-          <label class="block text-sm text-zinc-400 mb-1">Email</label>
-          <input type="email" name="email" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-3 text-sm outline-none transition-colors" placeholder="Optional"/>
         </div>
 
-        <div class="border-t border-zinc-700 pt-4">
-          <div class="flex justify-between text-white font-bold mb-4">
-            <span>Total Amount</span>
-            <span class="text-amber-400" id="modal-total">Rs 0</span>
+        <!-- Customer Delivery Details -->
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Delivery Address</label>
+          <div class="space-y-3">
+            <div>
+              <input type="text" name="fullName" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Full Name *"/>
+            </div>
+            <div>
+              <input type="tel" name="phoneNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="WhatsApp / Phone (03XXXXXXXXX) *"/>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" name="houseNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="House / Flat No. *"/>
+              <input type="text" name="streetNameNo" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Street / Sector *"/>
+            </div>
+            <div>
+              <input type="text" name="areaName" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Area / Town / Colony *"/>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" name="city" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="City *"/>
+              <select name="province" required class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors">
+                <option value="">Province *</option>
+                <option>Sindh</option><option>Punjab</option><option>KPK</option><option>Balochistan</option>
+                <option>Islamabad</option><option>AJK</option><option>Gilgit-Baltistan</option>
+              </select>
+            </div>
+            <div>
+              <input type="text" name="famousPlace" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Nearest Landmark / Famous Place (Optional)"/>
+            </div>
+            <div>
+              <input type="email" name="email" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Email Address (Optional)"/>
+            </div>
           </div>
-          <button type="submit" id="place-btn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3.5 rounded-full transition-all text-sm">
-            Place Order
-          </button>
         </div>
+
+        <!-- Payment Method Selection -->
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Select Payment Method</label>
+          <div class="space-y-2.5" id="payment-options-container">
+            <!-- COD Option (hidden if any item has closeCOD) -->
+            <label id="payment-opt-cod" class="flex items-center justify-between p-3.5 rounded-2xl border border-zinc-700 bg-zinc-900/60 hover:border-amber-500/60 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="paymentMethod" value="COD" onchange="onPaymentMethodChange('COD')" class="text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" checked />
+                <div>
+                  <div class="text-white font-medium text-sm flex items-center gap-2">
+                    Cash on Delivery (COD)
+                    <span class="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-700">6% Tax</span>
+                  </div>
+                  <p class="text-zinc-400 text-xs">Pay full amount in cash when parcel arrives at your door</p>
+                </div>
+              </div>
+            </label>
+
+            <!-- Pay Some Advance (PSA) -->
+            <label id="payment-opt-psa" class="flex items-center justify-between p-3.5 rounded-2xl border border-zinc-700 bg-zinc-900/60 hover:border-amber-500/60 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="paymentMethod" value="Pay Some Advance" onchange="onPaymentMethodChange('Pay Some Advance')" class="text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+                <div>
+                  <div class="text-white font-medium text-sm flex items-center gap-2">
+                    Pay Some Advance (PSA)
+                    <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30">4% Tax</span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">Save 2%</span>
+                  </div>
+                  <p class="text-zinc-400 text-xs" id="psa-bracket-desc">Pay small token advance now, remaining balance on delivery</p>
+                </div>
+              </div>
+            </label>
+
+            <!-- Advance Payment (Full) -->
+            <label id="payment-opt-advance" class="flex items-center justify-between p-3.5 rounded-2xl border border-zinc-700 bg-zinc-900/60 hover:border-amber-500/60 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="paymentMethod" value="Advance Payment" onchange="onPaymentMethodChange('Advance Payment')" class="text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+                <div>
+                  <div class="text-white font-medium text-sm flex items-center gap-2">
+                    Advance Payment (Full)
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">2% Tax Only</span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Best Savings</span>
+                  </div>
+                  <p class="text-zinc-400 text-xs">Pay 100% upfront via Bank / EasyPaisa / JazzCash & get lowest tax</p>
+                </div>
+              </div>
+            </label>
+          </div>
+          <div id="cod-disabled-notice" class="hidden mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center gap-2">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>One or more items in your cart require advance payment. Cash on Delivery is disabled.</span>
+          </div>
+        </div>
+
+        <!-- Bank Details & Proof Upload Section (Visible only when PSA or Advance Payment is selected) -->
+        <div id="bank-payment-section" class="hidden space-y-4 p-4 rounded-2xl bg-zinc-900 border border-amber-500/30">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              Select Bank & Transfer Funds
+            </h4>
+            <span class="text-[11px] text-amber-400 font-mono" id="required-advance-display"></span>
+          </div>
+
+          <!-- Bank Selection Dropdown / Radio Cards -->
+          <div id="bank-accounts-container" class="space-y-2">
+            <p class="text-xs text-zinc-500">Loading payment accounts...</p>
+          </div>
+
+          <!-- Selected Bank Details Box -->
+          <div id="selected-bank-card" class="hidden p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-zinc-400">Account Title:</span>
+              <span id="bank-card-title" class="text-white font-bold"></span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-zinc-400">Account Number / IBAN:</span>
+              <div class="flex items-center gap-1.5">
+                <span id="bank-card-number" class="text-amber-400 font-mono font-bold"></span>
+                <button type="button" onclick="copyAccountNumber()" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded transition-colors">Copy</button>
+              </div>
+            </div>
+            <div id="bank-card-instructions-row" class="hidden pt-1 border-t border-zinc-800 text-zinc-400 text-[11px]">
+              <span id="bank-card-instructions"></span>
+            </div>
+          </div>
+
+          <!-- Payment Proof Upload (Compulsory) -->
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1.5 flex items-center justify-between">
+              <span>Upload Payment Screenshot / Proof *</span>
+              <span class="text-[10px] text-amber-400">(Required)</span>
+            </label>
+            <input type="file" id="proof-file-input" accept="image/*,.pdf" onchange="handleProofUpload(event)" class="hidden" />
+            
+            <div id="upload-proof-box" onclick="document.getElementById('proof-file-input').click()" 
+              class="border-2 border-dashed border-zinc-700 hover:border-amber-500 rounded-xl p-4 text-center cursor-pointer transition-all bg-zinc-950/60 group">
+              <div id="proof-upload-idle" class="flex flex-col items-center justify-center gap-1.5">
+                <svg class="w-7 h-7 text-zinc-500 group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <p class="text-xs text-zinc-300 font-medium">Click to upload payment screenshot (JPG, PNG, PDF)</p>
+                <p class="text-[10px] text-zinc-500">Take a screenshot of your successful transfer and attach it here</p>
+              </div>
+              <div id="proof-upload-loading" class="hidden flex-col items-center justify-center py-2">
+                <div class="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-1"></div>
+                <p class="text-xs text-amber-400 font-medium">Uploading proof securely...</p>
+              </div>
+              <div id="proof-upload-success" class="hidden flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span id="proof-filename" class="text-xs text-emerald-400 font-medium truncate max-w-[200px]">Proof attached</span>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); removeProofImage()" class="text-zinc-400 hover:text-red-400 text-xs px-2 py-1">Change</button>
+              </div>
+            </div>
+            <input type="hidden" id="payment-proof-url" name="paymentProofImage" value="" />
+          </div>
+        </div>
+
+        <!-- Dynamic Order Summary Breakdown -->
+        <div class="border-t border-zinc-800 pt-4 space-y-2 text-sm bg-zinc-900/40 p-4 rounded-2xl">
+          <div class="flex justify-between text-zinc-400">
+            <span>Items Subtotal</span>
+            <span id="checkout-subtotal">Rs 0</span>
+          </div>
+          <div class="flex justify-between text-zinc-400">
+            <span>Delivery Charges</span>
+            <span id="checkout-delivery">Rs 0</span>
+          </div>
+          <div class="flex justify-between text-zinc-400">
+            <span id="tax-label">Sales Tax (6%)</span>
+            <span id="checkout-tax" class="text-amber-400">Rs 0</span>
+          </div>
+          
+          <div class="border-t border-zinc-800 pt-2 flex justify-between text-white font-bold text-base">
+            <span>Total Payable</span>
+            <span id="checkout-total-payable" class="text-amber-400 font-black">Rs 0</span>
+          </div>
+
+          <!-- PSA Advance Deducted & Delivery Due row -->
+          <div id="psa-breakdown-rows" class="hidden space-y-1.5 pt-2 border-t border-dashed border-zinc-700">
+            <div class="flex justify-between text-emerald-400 font-semibold text-xs">
+              <span>Advance Payable Now</span>
+              <span id="checkout-advance-now">Rs 0</span>
+            </div>
+            <div class="flex justify-between text-zinc-300 font-bold text-sm">
+              <span>Balance Due on Delivery</span>
+              <span id="checkout-due-delivery" class="text-white">Rs 0</span>
+            </div>
+          </div>
+
+          <!-- Full Advance Notice -->
+          <div id="full-advance-row" class="hidden pt-1 text-right">
+            <span class="text-xs text-emerald-400 font-semibold">✓ Rs 0 due on delivery (100% advance)</span>
+          </div>
+        </div>
+
+        <button type="submit" id="place-btn" class="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-full transition-all text-sm shadow-xl shadow-amber-600/30">
+          Place Order
+        </button>
+        <p id="proof-required-warning" class="hidden text-center text-xs text-red-400 font-medium">Please upload payment proof screenshot to enable button.</p>
       </form>
     </div>
   </div>
 
   <!-- Success Modal -->
-  <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-    <div class="bg-zinc-950 border border-zinc-700 rounded-2xl p-8 max-w-sm w-full text-center">
-      <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+  <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+    <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+      <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/30">
         <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
       </div>
-      <h2 class="text-2xl font-bold text-white mb-2">Order Placed! 🎉</h2>
-      <p class="text-zinc-400 mb-2 text-sm">Your order has been received. We'll contact you soon for confirmation.</p>
-      <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-3">
+      <h2 id="success-title" class="text-2xl font-bold text-white mb-2">Order Placed! 🎉</h2>
+      <p id="success-msg" class="text-zinc-400 mb-4 text-sm leading-relaxed">Your order has been received. We'll contact you soon for confirmation.</p>
+      <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-4">
         <p class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-1">Your Order ID</p>
-        <p id="placed-order-id" class="text-amber-400 font-mono font-black text-xl tracking-widest">-</p>
+        <p id="placed-order-id" class="text-amber-400 font-mono font-black text-2xl tracking-widest">-</p>
         <p class="text-zinc-500 text-[11px] mt-1">Save this ID to track your order anytime!</p>
       </div>
-      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 mb-4">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-5">
         <p class="text-zinc-400 text-xs uppercase tracking-wider mb-0.5">Estimated Delivery</p>
         <p class="text-white font-semibold text-sm"><%= estimatedDeliveryTime %></p>
       </div>
-      <div class="space-y-2">
-        <a id="track-order-link" href="/track-order" class="block w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 rounded-xl transition-all text-sm">
+      <div class="space-y-2.5">
+        <a id="track-order-link" href="/track-order" class="block w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-lg shadow-amber-600/30">
           Track Your Order →
         </a>
-        <a href="/" class="block w-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 font-medium py-2 rounded-xl transition-all text-xs">
+        <a href="/" class="block w-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 font-medium py-2.5 rounded-xl transition-all text-xs">
           Continue Shopping
         </a>
       </div>
@@ -129,6 +285,22 @@
 </section>
 
 <script>
+let activePaymentMethod = 'COD';
+let availablePaymentAccounts = [];
+let selectedBankCode = '';
+let currentSubtotal = 0;
+let currentDelivery = 0;
+let hasCloseCODItem = false;
+
+// Dynamic advance required formula based on subtotal
+function getAdvanceRequired(subtotal) {
+  if (subtotal < 200) return 100;
+  if (subtotal < 500) return 200;
+  if (subtotal < 1500) return 400;
+  if (subtotal < 3000) return 700;
+  return 850;
+}
+
 function renderCart() {
   const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
   const container = document.getElementById('cart-items');
@@ -146,13 +318,17 @@ function renderCart() {
 
   let subtotal = 0;
   let totalDelivery = 0;
+  hasCloseCODItem = false;
 
   cart.forEach((item, idx) => {
     subtotal += item.price * item.quantity;
-    // Add delivery charge once per product (not multiplied by qty) unless free delivery
     if (!item.isFreeDelivery && item.deliveryCharges > 0) {
       totalDelivery += item.deliveryCharges;
     }
+    if (item.closeCOD === true) {
+      hasCloseCODItem = true;
+    }
+
     container.insertAdjacentHTML('beforeend', `
       <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-4 flex gap-4 items-start">
         ${item.image ? `<img src="${item.image}" alt="${item.name}" class="w-20 h-20 object-cover rounded-xl flex-shrink-0 bg-zinc-800"/>` : `<div class="w-20 h-20 bg-zinc-800 rounded-xl flex-shrink-0"></div>`}
@@ -161,6 +337,7 @@ function renderCart() {
           ${item.selectedVariant ? `<p class="text-amber-500 text-xs font-medium mb-1">${item.selectedVariant}</p>` : ''}
           <p class="text-amber-400 font-bold text-sm">Rs ${item.price}</p>
           ${item.isFreeDelivery ? '<p class="text-emerald-400 text-xs font-medium">✓ Free Delivery</p>' : item.deliveryCharges > 0 ? `<p class="text-zinc-500 text-xs">Delivery: Rs ${item.deliveryCharges}</p>` : ''}
+          ${item.closeCOD ? '<span class="inline-block mt-1 text-[10px] text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full">Advance Required</span>' : ''}
           <div class="flex items-center gap-2 mt-2">
             <button onclick="changeQty(${idx}, -1)" class="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 rounded-full text-white font-bold transition-colors flex items-center justify-center text-sm">-</button>
             <span class="text-white font-semibold w-6 text-center text-sm">${item.quantity}</span>
@@ -174,11 +351,12 @@ function renderCart() {
       </div>`);
   });
 
-  const grandTotal = subtotal + totalDelivery;
+  currentSubtotal = subtotal;
+  currentDelivery = totalDelivery;
+
   document.getElementById('summary-subtotal').textContent = 'Rs ' + subtotal.toFixed(0);
   document.getElementById('summary-delivery').textContent = totalDelivery === 0 ? 'Free' : 'Rs ' + totalDelivery.toFixed(0);
-  document.getElementById('summary-total').textContent = 'Rs ' + grandTotal.toFixed(0);
-  document.getElementById('modal-total').textContent = 'Rs ' + grandTotal.toFixed(0);
+  document.getElementById('summary-total').textContent = 'Rs ' + (subtotal + totalDelivery).toFixed(0);
 }
 
 function changeQty(idx, delta) {
@@ -197,14 +375,243 @@ function removeItem(idx) {
   renderCart();
 }
 
+// Fetch active bank accounts from API
+async function loadPaymentAccounts() {
+  try {
+    const res = await fetch('/api/payment-accounts');
+    if (res.ok) {
+      availablePaymentAccounts = await res.json();
+      renderBankAccountsList();
+    }
+  } catch (err) {
+    console.error('Failed to load payment accounts:', err);
+  }
+}
+
+function renderBankAccountsList() {
+  const container = document.getElementById('bank-accounts-container');
+  if (!availablePaymentAccounts || availablePaymentAccounts.length === 0) {
+    container.innerHTML = '<p class="text-xs text-zinc-400">Please contact support for payment instructions.</p>';
+    return;
+  }
+
+  container.innerHTML = availablePaymentAccounts.map((acc, idx) => `
+    <label class="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:border-amber-500/50 cursor-pointer transition-all">
+      <div class="flex items-center gap-3">
+        <input type="radio" name="selectedBankAccount" value="${acc.bankCode}" onchange="selectBankAccount('${acc.bankCode}')" ${idx === 0 ? 'checked' : ''} class="text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+        <div class="flex items-center gap-2">
+          ${acc.logoUrl ? `<img src="${acc.logoUrl}" alt="${acc.bankName}" class="w-7 h-7 object-contain rounded-md bg-white p-0.5" />` : ''}
+          <div>
+            <p class="text-white text-xs font-bold">${acc.bankName}</p>
+            <p class="text-zinc-400 text-[11px]">${acc.accountTitle}</p>
+          </div>
+        </div>
+      </div>
+      <span class="text-amber-400 font-mono text-xs font-bold">${acc.accountNumber}</span>
+    </label>
+  `).join('');
+
+  if (availablePaymentAccounts.length > 0) {
+    selectBankAccount(availablePaymentAccounts[0].bankCode);
+  }
+}
+
+function selectBankAccount(code) {
+  selectedBankCode = code;
+  const acc = availablePaymentAccounts.find(a => a.bankCode === code);
+  if (!acc) return;
+
+  const card = document.getElementById('selected-bank-card');
+  card.classList.remove('hidden');
+  document.getElementById('bank-card-title').textContent = acc.accountTitle;
+  document.getElementById('bank-card-number').textContent = acc.accountNumber;
+
+  const instRow = document.getElementById('bank-card-instructions-row');
+  const instText = document.getElementById('bank-card-instructions');
+  if (acc.instructions && acc.instructions.trim()) {
+    instText.textContent = acc.instructions;
+    instRow.classList.remove('hidden');
+  } else {
+    instRow.classList.add('hidden');
+  }
+}
+
+function copyAccountNumber() {
+  const num = document.getElementById('bank-card-number').textContent;
+  if (!num) return;
+  navigator.clipboard.writeText(num).then(() => {
+    alert('Account number copied: ' + num);
+  });
+}
+
 function showCheckout() {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  if (cart.length === 0) return;
+
+  // Render review items container
+  const itemsContainer = document.getElementById('checkout-products-container');
+  itemsContainer.innerHTML = cart.map(item => `
+    <div class="flex items-center justify-between gap-3 text-xs py-1 border-b border-zinc-800/60 last:border-0">
+      <div class="flex items-center gap-2 min-w-0">
+        ${item.image ? `<img src="${item.image}" alt="" class="w-9 h-9 object-cover rounded-lg bg-zinc-800 flex-shrink-0"/>` : `<div class="w-9 h-9 rounded-lg bg-zinc-800 flex-shrink-0"></div>`}
+        <div class="min-w-0">
+          <p class="text-white font-medium truncate">${item.name}</p>
+          <p class="text-zinc-400 text-[11px]">${item.selectedVariant || ''} × ${item.quantity}</p>
+        </div>
+      </div>
+      <div class="text-right flex-shrink-0 font-semibold text-amber-400">
+        Rs ${(item.price * item.quantity).toFixed(0)}
+      </div>
+    </div>
+  `).join('');
+
+  // Check Close COD
+  const codOption = document.getElementById('payment-opt-cod');
+  const codDisabledNotice = document.getElementById('cod-disabled-notice');
+  const codRadio = document.querySelector('input[name="paymentMethod"][value="COD"]');
+  const psaRadio = document.querySelector('input[name="paymentMethod"][value="Pay Some Advance"]');
+
+  if (hasCloseCODItem) {
+    codOption.classList.add('hidden');
+    codDisabledNotice.classList.remove('hidden');
+    if (psaRadio) psaRadio.checked = true;
+    onPaymentMethodChange('Pay Some Advance');
+  } else {
+    codOption.classList.remove('hidden');
+    codDisabledNotice.classList.add('hidden');
+    if (codRadio) codRadio.checked = true;
+    onPaymentMethodChange('COD');
+  }
+
+  loadPaymentAccounts();
   document.getElementById('checkout-modal').classList.remove('hidden');
+}
+
+function onPaymentMethodChange(method) {
+  activePaymentMethod = method;
+  const bankSection = document.getElementById('bank-payment-section');
+  const psaRows = document.getElementById('psa-breakdown-rows');
+  const fullAdvanceRow = document.getElementById('full-advance-row');
+  const taxLabel = document.getElementById('tax-label');
+
+  let taxPercent = 0.06;
+  if (method === 'Pay Some Advance') taxPercent = 0.04;
+  else if (method === 'Advance Payment') taxPercent = 0.02;
+
+  const rawTotal = currentSubtotal + currentDelivery;
+  const salesTax = Math.round(rawTotal * taxPercent);
+  const totalPayable = rawTotal + salesTax;
+
+  taxLabel.textContent = `Sales Tax (${(taxPercent * 100).toFixed(0)}%)`;
+  document.getElementById('checkout-subtotal').textContent = 'Rs ' + currentSubtotal.toFixed(0);
+  document.getElementById('checkout-delivery').textContent = currentDelivery === 0 ? 'Free' : 'Rs ' + currentDelivery.toFixed(0);
+  document.getElementById('checkout-tax').textContent = 'Rs ' + salesTax.toFixed(0);
+  document.getElementById('checkout-total-payable').textContent = 'Rs ' + totalPayable.toFixed(0);
+
+  if (method === 'COD') {
+    bankSection.classList.add('hidden');
+    psaRows.classList.add('hidden');
+    fullAdvanceRow.classList.add('hidden');
+    checkPlaceOrderButton();
+  } else if (method === 'Pay Some Advance') {
+    bankSection.classList.remove('hidden');
+    psaRows.classList.remove('hidden');
+    fullAdvanceRow.classList.add('hidden');
+
+    let advReq = getAdvanceRequired(currentSubtotal);
+    advReq = Math.min(advReq, totalPayable);
+    const dueDelivery = Math.max(0, totalPayable - advReq);
+
+    document.getElementById('required-advance-display').textContent = `Advance Required: Rs ${advReq}`;
+    document.getElementById('checkout-advance-now').textContent = `Rs ${advReq}`;
+    document.getElementById('checkout-due-delivery').textContent = `Rs ${dueDelivery}`;
+    document.getElementById('psa-bracket-desc').textContent = `Advance Rs ${advReq} required now, Rs ${dueDelivery} on delivery`;
+    checkPlaceOrderButton();
+  } else if (method === 'Advance Payment') {
+    bankSection.classList.remove('hidden');
+    psaRows.classList.add('hidden');
+    fullAdvanceRow.classList.remove('hidden');
+
+    document.getElementById('required-advance-display').textContent = `Total Advance: Rs ${totalPayable}`;
+    checkPlaceOrderButton();
+  }
+}
+
+function checkPlaceOrderButton() {
+  const btn = document.getElementById('place-btn');
+  const warning = document.getElementById('proof-required-warning');
+  const proofUrl = document.getElementById('payment-proof-url').value;
+
+  if (activePaymentMethod === 'COD') {
+    btn.disabled = false;
+    warning.classList.add('hidden');
+  } else {
+    if (!proofUrl || !proofUrl.trim()) {
+      btn.disabled = true;
+      warning.classList.remove('hidden');
+    } else {
+      btn.disabled = false;
+      warning.classList.add('hidden');
+    }
+  }
+}
+
+// Handle payment screenshot / proof upload
+async function handleProofUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const idleBox = document.getElementById('proof-upload-idle');
+  const loadingBox = document.getElementById('proof-upload-loading');
+  const successBox = document.getElementById('proof-upload-success');
+
+  idleBox.classList.add('hidden');
+  loadingBox.classList.remove('hidden');
+  successBox.classList.add('hidden');
+
+  try {
+    const reader = new FileReader();
+    reader.onload = async function(evt) {
+      const base64 = evt.target.result;
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, fileName: file.name })
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        document.getElementById('payment-proof-url').value = data.url;
+        document.getElementById('proof-filename').textContent = file.name;
+        loadingBox.classList.add('hidden');
+        successBox.classList.remove('hidden');
+        checkPlaceOrderButton();
+      } else {
+        alert(data.message || 'Failed to upload proof. Please try again.');
+        idleBox.classList.remove('hidden');
+        loadingBox.classList.add('hidden');
+      }
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    alert('Upload error. Please try again.');
+    idleBox.classList.remove('hidden');
+    loadingBox.classList.add('hidden');
+  }
+}
+
+function removeProofImage() {
+  document.getElementById('payment-proof-url').value = '';
+  document.getElementById('proof-file-input').value = '';
+  document.getElementById('proof-upload-idle').classList.remove('hidden');
+  document.getElementById('proof-upload-loading').classList.add('hidden');
+  document.getElementById('proof-upload-success').classList.add('hidden');
+  checkPlaceOrderButton();
 }
 
 async function placeOrder(e) {
   e.preventDefault();
   const btn = document.getElementById('place-btn');
-  btn.textContent = 'Placing Order...';
+  btn.textContent = 'Processing Order...';
   btn.disabled = true;
 
   const form = e.target;
@@ -231,34 +638,60 @@ async function placeOrder(e) {
     isFreeDelivery: i.isFreeDelivery || false
   }));
 
+  const paymentProofImage = document.getElementById('payment-proof-url').value;
+  const selectedBankObj = availablePaymentAccounts.find(a => a.bankCode === selectedBankCode);
+  const bankSelected = selectedBankObj ? `${selectedBankObj.bankName} - ${selectedBankObj.accountNumber}` : selectedBankCode;
+
+  const payload = {
+    customerDetails,
+    products,
+    paymentMethod: activePaymentMethod,
+    paymentProofImage: paymentProofImage,
+    bankSelected: bankSelected
+  };
+
   try {
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ customerDetails, products })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (res.ok) {
       localStorage.removeItem('mhq_cart');
       updateCartCount();
       document.getElementById('checkout-modal').classList.add('hidden');
+
       const orderId = (data.order && data.order.orderId) ? data.order.orderId : (data.order ? '#' + data.order._id.slice(-6) : '');
       const placedIdEl = document.getElementById('placed-order-id');
       if (placedIdEl) placedIdEl.textContent = orderId;
+
       const trackLink = document.getElementById('track-order-link');
       if (trackLink && data.order && data.order.orderId) {
         trackLink.href = '/track-order?id=' + encodeURIComponent(data.order.orderId);
       }
+
+      // Customize confirmation message based on payment method
+      const successTitle = document.getElementById('success-title');
+      const successMsg = document.getElementById('success-msg');
+      if (activePaymentMethod === 'COD') {
+        successTitle.textContent = 'Order Placed! 🎉';
+        successMsg.textContent = "Your order has been received. We'll contact you soon for confirmation.";
+      } else {
+        successTitle.textContent = 'Order Received!';
+        successMsg.innerHTML = '<span class="text-amber-400 font-semibold">Your payment is under review.</span> Once confirmed, your order will proceed.';
+      }
+
       document.getElementById('success-modal').classList.remove('hidden');
     } else {
       alert(data.message || 'Error placing order. Please try again.');
       btn.textContent = 'Place Order';
-      btn.disabled = false;
+      checkPlaceOrderButton();
     }
   } catch (err) {
     alert('Network error. Please try again.');
     btn.textContent = 'Place Order';
-    btn.disabled = false;
+    checkPlaceOrderButton();
   }
 }
 

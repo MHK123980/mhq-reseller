@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
@@ -13,12 +14,14 @@ const productSchema = new mongoose.Schema({
   deliveryCharges: { type: Number, default: 0 },
   isLowInStock: { type: Boolean, default: false },
   isOutOfStock: { type: Boolean, default: false },
-  // Variants: e.g. [{ label: "Color", options: [{ name: "Red", price: 0 }, { name: "Blue", price: 50 }] }]
+  closeCOD: { type: Boolean, default: false },     // When true, disables COD option on checkout if cart has this item
+  // Variants: e.g. [{ label: "Color", options: [{ name: "Red", extraPrice: 0, isSoldOut: false }] }]
   variants: [{
     label: { type: String, required: true },
     options: [{
       name: { type: String, required: true },
-      extraPrice: { type: Number, default: 0 }  // 0 = same as base price
+      extraPrice: { type: Number, default: 0 },   // 0 = same as base price
+      isSoldOut: { type: Boolean, default: false } // Marked as sold out / out of stock
     }]
   }]
 }, { timestamps: true });

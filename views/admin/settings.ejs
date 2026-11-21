@@ -9,9 +9,9 @@
     <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
       <div>
         <h2 class="text-lg font-bold text-amber-500 flex items-center gap-2">
-          <span>🔥</span> Mega Sale & Top Announcement Bar
+          <span>🔥</span> Homepage Mega Sale Top Announcement Bar
         </h2>
-        <p class="text-xs text-zinc-400 mt-0.5">Display a luxury top announcement banner on the customer website for 11.11, Flash Sales, etc.</p>
+        <p class="text-xs text-zinc-400 mt-0.5">Displays a luxury top announcement banner exclusively on the homepage for 11.11, Flash Sales, etc.</p>
       </div>
       <label class="relative inline-flex items-center cursor-pointer">
         <input type="checkbox" id="saleAnnouncementEnabled" class="sr-only peer" <%= (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.enabled) ? 'checked' : '' %>>
@@ -25,18 +25,11 @@
         <input type="text" id="saleAnnouncementText" value="<%= (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.text) ? saleAnnouncement.text : '' %>"
           class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-amber-500 outline-none transition-colors"
           placeholder="e.g. 🔥 MEGA 11.11 SALE IS LIVE! Up to 50% OFF — Limited Time Offer!" />
-        <p class="text-[11px] text-zinc-500 mt-1">When enabled, this message will be shown at the top of every page.</p>
-      </div>
-
-      <div>
-        <label class="block text-sm text-zinc-400 mb-1">Target Link (Optional)</label>
-        <input type="text" id="saleAnnouncementLink" value="<%= (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.link) ? saleAnnouncement.link : '/products' %>"
-          class="w-full bg-zinc-800 border border-zinc-700 text-white rounded-xl px-4 py-2.5 text-sm focus:border-amber-500 outline-none transition-colors"
-          placeholder="e.g. /products or /featuredproducts" />
+        <p class="text-[11px] text-zinc-500 mt-1">When toggle is ON, this message is prominently shown at the top of the homepage.</p>
       </div>
 
       <button type="submit" id="sale-save-btn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors text-sm">
-        Save Sale Announcement
+        Save Announcement Bar
       </button>
     </form>
   </div>
@@ -69,8 +62,7 @@ async function saveSaleSettings(e) {
 
   const payload = {
     enabled: document.getElementById('saleAnnouncementEnabled').checked,
-    text: document.getElementById('saleAnnouncementText').value.trim(),
-    link: document.getElementById('saleAnnouncementLink').value.trim() || '/products'
+    text: document.getElementById('saleAnnouncementText').value.trim()
   };
 
   try {
@@ -84,7 +76,7 @@ async function saveSaleSettings(e) {
     });
     const data = await res.json();
     if(res.ok && data.success) {
-      alert('Sale announcement settings saved successfully!');
+      alert('Announcement bar settings saved successfully!');
     } else {
       alert(data.message || 'Failed to save announcement settings.');
     }

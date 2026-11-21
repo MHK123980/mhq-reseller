@@ -1,0 +1,296 @@
+<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1 flex items-center gap-3">
+        Pending Payments Verification
+        <span id="pending-count-badge" class="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full font-mono font-bold">
+          <%= orders.length %> Under Review
+        </span>
+      </h1>
+      <p class="text-zinc-400 text-sm">Review payment transfer screenshots before approving customer orders for dispatch</p>
+    </div>
+  </div>
+
+  <!-- Instruction Banner -->
+  <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-6 flex items-start gap-3 text-xs sm:text-sm text-amber-300">
+    <svg class="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div>
+      <p class="font-bold mb-0.5">Safety Policy: Proof Inspection Compulsory</p>
+      <p class="text-amber-200/80 text-xs">For security against fraudulent orders, the <strong class="text-white">Approve</strong> and <strong class="text-white">Decline</strong> buttons unlock only after you view the customer's transfer screenshot at least once.</p>
+    </div>
+  </div>
+
+  <!-- Pending Payments Grid -->
+  <div id="pending-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% orders.forEach(o => { 
+      const b64 = Buffer.from(unescape(encodeURIComponent(JSON.stringify(o)))).toString('base64');
+      const isPSA = o.paymentMethod === 'Pay Some Advance';
+    %>
+    <div class="bg-zinc-900 border border-zinc-700/80 rounded-2xl p-5 flex flex-col relative shadow-xl" id="pending-card-<%= o._id %>">
+      <!-- Order Header -->
+      <div class="flex items-start justify-between pb-3 mb-3 border-b border-zinc-800">
+        <div>
+          <span class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md font-bold inline-block mb-1">
+            <%= o.orderId || ('#' + o._id.toString().slice(-6)) %>
+          </span>
+          <p class="text-[11px] text-zinc-500"><%= new Date(o.createdAt).toLocaleString('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
+        </div>
+        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          Under Review
+        </span>
+      </div>
+
+      <!-- Customer & Bank Info -->
+      <div class="space-y-2 mb-4 text-xs">
+        <div>
+          <p class="text-zinc-500 text-[11px]">Customer:</p>
+          <p class="text-white font-bold text-sm"><%= o.customerDetails ? o.customerDetails.fullName : 'Customer' %></p>
+          <p class="text-zinc-400 font-mono"><%= o.customerDetails ? o.customerDetails.phoneNo : '-' %></p>
+        </div>
+        
+        <div class="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-zinc-400 text-[11px]">Payment Method:</span>
+            <span class="text-white font-semibold"><%= o.paymentMethod %></span>
+          </div>
+          <% if (o.bankSelected) { %>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-zinc-400 text-[11px]">Transferred To:</span>
+            <span class="text-amber-400 font-mono font-medium truncate max-w-[170px]"><%= o.bankSelected %></span>
+          </div>
+          <% } %>
+          <div class="flex justify-between items-center border-t border-zinc-800/80 pt-1 mt-1">
+            <span class="text-zinc-400 text-[11px]"><%= isPSA ? 'Advance Expected:' : 'Full Advance:' %></span>
+            <span class="text-amber-400 font-black text-sm">Rs <%= Number(o.advanceAmount || o.totalAmount).toLocaleString() %></span>
+          </div>
+          <% if (isPSA) { %>
+          <div class="flex justify-between items-center text-[10px] text-zinc-500">
+            <span>Remaining Due:</span>
+            <span>Rs <%= Number(o.totalDueAmount || (o.totalAmount - (o.advanceAmount || 0))).toLocaleString() %></span>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Proof Image Preview Button -->
+      <div class="mb-4">
+        <% if (o.paymentProofImage) { %>
+          <button type="button" onclick="openProofModal('<%= o._id %>', '<%= o.paymentProofImage %>', '<%= o.orderId %>')" 
+            class="w-full py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 border border-zinc-700 hover:border-amber-500/50 group">
+            <svg class="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span>View Transfer Proof</span>
+          </button>
+        <% } else { %>
+          <div class="p-2.5 bg-red-950/40 border border-red-500/30 rounded-xl text-center text-red-400 text-xs">
+            No proof image attached
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Action Buttons (Unlocked only after viewing proof) -->
+      <div class="mt-auto border-t border-zinc-800 pt-3">
+        <div id="actions-locked-<%= o._id %>" class="text-center py-1">
+          <p class="text-[11px] text-zinc-500 italic flex items-center justify-center gap-1">
+            <svg class="w-3.5 h-3.5 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            View proof screenshot to unlock decisions
+          </p>
+        </div>
+
+        <div id="actions-unlocked-<%= o._id %>" class="hidden flex gap-2">
+          <button type="button" onclick="confirmPaymentAction('<%= o._id %>', '<%= o.orderId %>', 'approve', <%= Number(o.advanceAmount || o.totalAmount) %>, '<%= o.customerDetails ? o.customerDetails.fullName : '' %>')"
+            class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Approve
+          </button>
+          <button type="button" onclick="confirmPaymentAction('<%= o._id %>', '<%= o.orderId %>', 'decline', <%= Number(o.advanceAmount || o.totalAmount) %>, '<%= o.customerDetails ? o.customerDetails.fullName : '' %>')"
+            class="flex-1 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Decline
+          </button>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+
+    <% if (orders.length === 0) { %>
+    <div class="col-span-full text-center py-24 bg-zinc-900/40 rounded-3xl border border-zinc-800">
+      <div class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-3 text-zinc-600">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <p class="text-white font-bold text-base mb-1">All Caught Up!</p>
+      <p class="text-zinc-500 text-xs">No pending payment screenshots need verification right now.</p>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Proof Image Viewer Modal -->
+<div id="proof-viewer-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/90 backdrop-blur-md">
+  <div class="bg-zinc-950 border border-zinc-700 rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800">
+      <div>
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>Payment Transfer Proof</span>
+          <span id="proof-viewer-order-id" class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded"></span>
+        </h3>
+        <p class="text-[11px] text-zinc-400">Verify transaction ID, receiver account & amount</p>
+      </div>
+      <button onclick="closeProofModal()" class="w-8 h-8 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Image Display Area -->
+    <div class="flex-1 overflow-auto p-4 flex items-center justify-center bg-zinc-900/60 min-h-[300px]">
+      <img id="proof-viewer-img" src="" alt="Proof" class="max-w-full max-h-[65vh] object-contain rounded-xl border border-zinc-800 shadow-2xl" />
+    </div>
+
+    <div class="p-4 border-t border-zinc-800 flex items-center justify-between gap-3 bg-zinc-950">
+      <a id="proof-viewer-download" href="#" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-400 hover:underline flex items-center gap-1">
+        <span>Open full resolution in new tab</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      </a>
+      <button type="button" onclick="closeProofModal()" class="px-5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold transition-colors">
+        Done Inspecting (Unlock Buttons)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Action Popup Modal -->
+<div id="confirm-action-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+  <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+    <div id="confirm-action-icon" class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 border">
+      <!-- Icon inserted via JS -->
+    </div>
+    <h3 id="confirm-action-title" class="text-lg font-bold text-white mb-1.5">Confirm Payment Decision</h3>
+    <p id="confirm-action-desc" class="text-xs text-zinc-400 mb-5 leading-relaxed"></p>
+
+    <div class="flex gap-3">
+      <button type="button" onclick="closeConfirmModal()" class="flex-1 py-2.5 rounded-xl border border-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold transition-colors">Cancel</button>
+      <button type="button" id="confirm-action-btn" onclick="executePaymentDecision()" class="flex-1 py-2.5 rounded-xl text-white text-xs font-bold transition-all shadow-lg"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+let activeProofOrderId = null;
+let pendingDecision = { orderId: null, action: null };
+
+function openProofModal(orderId, imgUrl, displayId) {
+  activeProofOrderId = orderId;
+  document.getElementById('proof-viewer-img').src = imgUrl;
+  document.getElementById('proof-viewer-download').href = imgUrl;
+  document.getElementById('proof-viewer-order-id').textContent = displayId || '';
+  document.getElementById('proof-viewer-modal').classList.remove('hidden');
+
+  // Mark this order as viewed so the approve/decline buttons unlock
+  unlockOrderButtons(orderId);
+}
+
+function closeProofModal() {
+  document.getElementById('proof-viewer-modal').classList.add('hidden');
+}
+
+function unlockOrderButtons(orderId) {
+  const lockedEl = document.getElementById('actions-locked-' + orderId);
+  const unlockedEl = document.getElementById('actions-unlocked-' + orderId);
+  if (lockedEl) lockedEl.classList.add('hidden');
+  if (unlockedEl) unlockedEl.classList.remove('hidden');
+}
+
+function confirmPaymentAction(orderId, displayId, action, amount, customerName) {
+  pendingDecision = { orderId, action };
+
+  const iconEl = document.getElementById('confirm-action-icon');
+  const titleEl = document.getElementById('confirm-action-title');
+  const descEl = document.getElementById('confirm-action-desc');
+  const btnEl = document.getElementById('confirm-action-btn');
+
+  if (action === 'approve') {
+    iconEl.className = 'w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-emerald-500/15 border-emerald-500/30 text-emerald-400';
+    iconEl.innerHTML = '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+    titleEl.textContent = 'Approve Payment?';
+    descEl.innerHTML = `Are you sure you verified the transfer of <strong class="text-white">Rs ${amount.toLocaleString()}</strong> from <strong class="text-white">${customerName}</strong> for Order <strong class="text-amber-400">${displayId}</strong>?<br><br>This will approve payment and move order status to <strong class="text-emerald-400">Pending</strong> for courier dispatch.`;
+    btnEl.className = 'flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-emerald-600/30';
+    btnEl.textContent = 'Yes, Approve';
+  } else {
+    iconEl.className = 'w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-red-500/15 border-red-500/30 text-red-400';
+    iconEl.innerHTML = '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    titleEl.textContent = 'Decline Payment?';
+    descEl.innerHTML = `Are you sure you want to decline payment for Order <strong class="text-amber-400">${displayId}</strong>?<br><br>Order will be marked <strong class="text-red-400">Payment Declined</strong>.`;
+    btnEl.className = 'flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-red-600/30';
+    btnEl.textContent = 'Yes, Decline';
+  }
+
+  document.getElementById('confirm-action-modal').classList.remove('hidden');
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirm-action-modal').classList.add('hidden');
+}
+
+async function executePaymentDecision() {
+  if (!pendingDecision.orderId || !pendingDecision.action) return;
+  const btn = document.getElementById('confirm-action-btn');
+  const origText = btn.textContent;
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`/api/orders/${pendingDecision.orderId}/payment-status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: pendingDecision.action })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeConfirmModal();
+      // Remove card from grid with smooth fade
+      const card = document.getElementById('pending-card-' + pendingDecision.orderId);
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        setTimeout(() => card.remove(), 250);
+      }
+      // Update badge count
+      const remaining = document.querySelectorAll('[id^="pending-card-"]').length - 1;
+      const countBadge = document.getElementById('pending-count-badge');
+      if (countBadge) countBadge.textContent = `${Math.max(0, remaining)} Under Review`;
+    } else {
+      alert(data.message || 'Error updating payment status');
+    }
+  } catch (err) {
+    alert('Network error');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
+}
+</script>
+
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+try {
+  const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+  const channel = pusher.subscribe('mhq-reseller');
+
+  // Real-time payment update
+  channel.bind('payment:updated', (order) => {
+    if (order && order.paymentStatus !== 'Under Review') {
+      const card = document.getElementById('pending-card-' + order._id);
+      if (card) card.remove();
+    }
+  });
+
+  // When a new order with PSA or Advance arrives, reload
+  channel.bind('order:new', (order) => {
+    if (order && order.paymentStatus === 'Under Review') {
+      window.location.reload();
+    }
+  });
+} catch (e) {
+  console.warn('Pusher listener error in pending payments:', e);
+}
+</script>

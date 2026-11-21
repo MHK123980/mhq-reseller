@@ -31,6 +31,16 @@ router.get('/sitemap.xml', async (req, res) => {
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>${baseUrl}/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>${baseUrl}/track-order</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -62,13 +72,14 @@ router.get('/', async (req, res) => {
       categories: categories || [],
       featured: featured || [],
       products: products || [],
+      isHome: true,
       pusherKey: PUSHER_KEY,
       pusherCluster: PUSHER_CLUSTER,
       title: 'MHQ Reseller (Broker) - Quality Products'
     });
   } catch (err) {
     console.error('Homepage error:', err);
-    res.render('index', { categories: [], featured: [], products: [], pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER, title: 'MHQ Reseller (Broker)' });
+    res.render('index', { categories: [], featured: [], products: [], isHome: true, pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER, title: 'MHQ Reseller (Broker)' });
   }
 });
 
@@ -143,11 +154,29 @@ router.get('/cart', async (req, res) => {
 });
 
 router.get('/track-order', async (req, res) => {
-  const categories = await Category.find().sort({ name: 1 });
+  const categories = await Category.find().sort({ name: 1 }).lean();
   res.render('track-order', {
-    categories,
+    categories: categories || [],
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     title: 'Track Your Order - MHQ Reseller (Broker)'
+  });
+});
+
+router.get('/about', async (req, res) => {
+  const categories = await Category.find().sort({ name: 1 }).lean();
+  res.render('about', {
+    categories: categories || [],
+    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+    title: 'About Us - MHQ Reseller (Broker)'
+  });
+});
+
+router.get('/contact', async (req, res) => {
+  const categories = await Category.find().sort({ name: 1 }).lean();
+  res.render('contact', {
+    categories: categories || [],
+    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+    title: 'Contact Us - MHQ Reseller (Broker)'
   });
 });
 
@@ -156,10 +185,75 @@ router.get('/admin', (req, res) => {
   res.render('admin/login', { layout: 'layouts/admin', title: 'Admin Login - MHQ Reseller', error: null });
 });
 
-router.get('/admin/dashboard', protect, (req, res) => {
-  res.render('admin/dashboard', { layout: 'layouts/admin',
+// Admin global sidebar badge middleware
+router.use('/admin/dashboard', protect, async (req, res, next) => {
+  try {
+    const Order = require('../models/Order');
+    const [pendingOrders, pendingPayments] = await Promise.all([
+      Order.countDocuments({ status: 'Pending' }),
+      Order.countDocuments({ paymentStatus: 'Under Review' })
+    ]);
+    res.locals.pendingOrdersCount = pendingOrders;
+    res.locals.pendingPaymentsCount = pendingPayments;
+  } catch (e) {
+    res.locals.pendingOrdersCount = 0;
+    res.locals.pendingPaymentsCount = 0;
+  }
+  next();
+});
+
+router.get('/admin/dashboard', protect, async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    const [totalOrders, pendingOrders, pendingPayments, deliveredOrdersList] = await Promise.all([
+      Order.countDocuments(),
+      Order.countDocuments({ status: 'Pending' }),
+      Order.countDocuments({ paymentStatus: 'Under Review' }),
+      Order.find({ status: 'Delivered' }).lean()
+    ]);
+    const deliveredOrders = deliveredOrdersList.length;
+    const totalRevenue = deliveredOrdersList.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    res.render('admin/dashboard', {
+      layout: 'layouts/admin',
+      stats: { totalOrders, pendingOrders, pendingPayments, deliveredOrders, totalRevenue },
+      pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+      user: req.user, title: 'Dashboard - MHQ Admin'
+    });
+  } catch (err) {
+    res.render('admin/dashboard', {
+      layout: 'layouts/admin',
+      stats: { totalOrders: 0, pendingOrders: 0, pendingPayments: 0, deliveredOrders: 0, totalRevenue: 0 },
+      pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+      user: req.user, title: 'Dashboard - MHQ Admin'
+    });
+  }
+});
+
+router.get('/admin/dashboard/pending-payments', protect, async (req, res) => {
+  const Order = require('../models/Order');
+  const orders = await Order.find({ paymentStatus: 'Under Review' })
+    .populate('products.product', 'name images price hasDiscount discountedPrice')
+    .sort({ createdAt: -1 });
+  res.render('admin/pending-payments', {
+    layout: 'layouts/admin',
+    orders,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
-    user: req.user, title: 'Dashboard - MHQ Admin' });
+    user: req.user, title: 'Pending Payments - MHQ Admin'
+  });
+});
+
+router.get('/admin/dashboard/payment-accounts', protect, async (req, res) => {
+  const PaymentAccount = require('../models/PaymentAccount');
+  const { PRESET_BANKS } = require('../controllers/paymentAccountController');
+  const accounts = await PaymentAccount.find().sort({ createdAt: -1 });
+  res.render('admin/payment-accounts', {
+    layout: 'layouts/admin',
+    accounts,
+    presetBanks: PRESET_BANKS,
+    pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
+    user: req.user, title: 'Payment Accounts - MHQ Admin'
+  });
 });
 
 router.get('/admin/dashboard/settings', protect, async (req, res) => {
@@ -170,13 +264,13 @@ router.get('/admin/dashboard/settings', protect, async (req, res) => {
     ]);
     res.render('admin/settings', { layout: 'layouts/admin',
       estimatedDeliveryTime: estTimeSetting ? estTimeSetting.value : '3-5 Days',
-      saleAnnouncement: saleSetting ? saleSetting.value : { enabled: false, text: '', link: '/products' },
+      saleAnnouncement: saleSetting ? saleSetting.value : { enabled: false, text: '' },
       pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
       user: req.user, title: 'Settings - MHQ Admin' });
   } catch (err) {
     res.render('admin/settings', { layout: 'layouts/admin',
       estimatedDeliveryTime: '3-5 Days',
-      saleAnnouncement: { enabled: false, text: '', link: '/products' },
+      saleAnnouncement: { enabled: false, text: '' },
       pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
       user: req.user, title: 'Settings - MHQ Admin' });
   }
@@ -199,7 +293,10 @@ router.get('/admin/dashboard/categories', protect, async (req, res) => {
 
 router.get('/admin/dashboard/orders', protect, async (req, res) => {
   const Order = require('../models/Order');
-  const orders = await Order.find().populate('products.product','name images price').sort({createdAt:-1});
+  // Regular orders list (exclude orders waiting for payment review)
+  const orders = await Order.find({ paymentStatus: { $ne: 'Under Review' } })
+    .populate('products.product','name images price hasDiscount discountedPrice')
+    .sort({createdAt:-1});
   res.render('admin/orders', { layout: 'layouts/admin', orders,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Orders - MHQ Admin' });

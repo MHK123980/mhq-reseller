@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto">
+<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
   <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
     <div>
       <h1 class="text-3xl font-bold text-white mb-1">Products</h1>
@@ -80,7 +80,14 @@
 
       <!-- Toggles -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <% const toggles = [['p-has-discount','tgl-bg-discount','tgl-dot-discount','Has Discount'],['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery','Free Delivery'],['p-featured','tgl-bg-featured','tgl-dot-featured','Featured'],['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock','Low In Stock'],['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock','Out of Stock']] %>
+        <% const toggles = [
+          ['p-has-discount','tgl-bg-discount','tgl-dot-discount','Has Discount'],
+          ['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery','Free Delivery'],
+          ['p-featured','tgl-bg-featured','tgl-dot-featured','Featured'],
+          ['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock','Low In Stock'],
+          ['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock','Out of Stock'],
+          ['p-close-cod','tgl-bg-close-cod','tgl-dot-close-cod','Close COD (Advance Only)']
+        ] %>
         <% toggles.forEach(([inputId, bgId, dotId, label]) => { %>
         <label class="flex items-center gap-2 cursor-pointer">
           <div class="relative w-12 h-6 rounded-full transition-colors bg-zinc-700" id="<%= bgId %>" onclick="toggleSwitch('<%= inputId %>','<%= bgId %>','<%= dotId %>')">
@@ -286,7 +293,14 @@ function openModal(mode, b64Data = null) {
   renderPreviews();
   document.getElementById('variants-container').innerHTML = '';
   document.getElementById('discount-calc-preview').textContent = '';
-  const switches = [['p-has-discount','tgl-bg-discount','tgl-dot-discount'],['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery'],['p-featured','tgl-bg-featured','tgl-dot-featured'],['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock'],['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock']];
+  const switches = [
+    ['p-has-discount','tgl-bg-discount','tgl-dot-discount'],
+    ['p-free-delivery','tgl-bg-free-delivery','tgl-dot-free-delivery'],
+    ['p-featured','tgl-bg-featured','tgl-dot-featured'],
+    ['p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock'],
+    ['p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock'],
+    ['p-close-cod','tgl-bg-close-cod','tgl-dot-close-cod']
+  ];
   switches.forEach(([a,b,c]) => setSwitch(a,b,c,false));
 
   if (mode === 'edit' && b64Data) {
@@ -309,6 +323,7 @@ function openModal(mode, b64Data = null) {
     setSwitch('p-featured','tgl-bg-featured','tgl-dot-featured', p.isFeatured);
     setSwitch('p-low-stock','tgl-bg-low-stock','tgl-dot-low-stock', p.isLowInStock);
     setSwitch('p-out-stock','tgl-bg-out-stock','tgl-dot-out-stock', p.isOutOfStock);
+    setSwitch('p-close-cod','tgl-bg-close-cod','tgl-dot-close-cod', p.closeCOD || false);
     if (p.images) { uploadedImages = [...p.images]; renderPreviews(); }
     // Load existing variants
     if (p.variants && p.variants.length > 0) {
@@ -433,6 +448,7 @@ async function saveProduct(e) {
     isFeatured: document.getElementById('p-featured').checked,
     isLowInStock: document.getElementById('p-low-stock').checked,
     isOutOfStock: document.getElementById('p-out-stock').checked,
+    closeCOD: document.getElementById('p-close-cod').checked,
     variants: collectVariants(),
   };
   try {
@@ -561,14 +577,19 @@ function addVariantOption(gId, optData = null) {
   const optId = Math.random().toString(36).substr(2, 9);
   const name = optData ? optData.name : '';
   const price = optData && optData.extraPrice ? optData.extraPrice : 0;
+  const isSoldOut = optData ? Boolean(optData.isSoldOut) : false;
   
   const html = `
-    <div id="v-opt-${optId}" class="flex items-center gap-2">
-      <input type="text" class="flex-1 bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1 text-white text-sm focus:border-amber-500 outline-none v-opt-name" value="${name}" placeholder="Option (e.g. XL, Red)" required/>
+    <div id="v-opt-${optId}" class="flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 bg-zinc-900/60 rounded-lg border border-zinc-700/60">
+      <input type="text" class="flex-1 min-w-[120px] bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-1.5 text-white text-sm focus:border-amber-500 outline-none v-opt-name" value="${name}" placeholder="Option (e.g. XL, Red)" required/>
       <div class="relative w-28">
         <span class="absolute left-2 top-1.5 text-zinc-500 text-xs">+Rs</span>
-        <input type="number" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg pl-8 pr-2 py-1 text-white text-sm focus:border-amber-500 outline-none v-opt-price" value="${price}" placeholder="0"/>
+        <input type="number" class="w-full bg-zinc-900 border border-zinc-600 rounded-lg pl-8 pr-2 py-1.5 text-white text-sm focus:border-amber-500 outline-none v-opt-price" value="${price}" placeholder="0"/>
       </div>
+      <label class="flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 cursor-pointer select-none">
+        <input type="checkbox" class="w-4 h-4 rounded border-zinc-600 bg-zinc-700 accent-red-500 v-opt-soldout cursor-pointer" ${isSoldOut ? 'checked' : ''} />
+        <span class="text-xs ${isSoldOut ? 'text-red-400 font-bold' : 'text-zinc-400'}">Sold Out</span>
+      </label>
       <button type="button" onclick="document.getElementById('v-opt-${optId}').remove()" class="text-red-400 hover:text-red-300 p-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
       </button>
@@ -586,7 +607,8 @@ function collectVariants() {
     g.querySelectorAll('[id^="v-opt-"]').forEach(opt => {
       const name = opt.querySelector('.v-opt-name').value.trim();
       const extraPrice = parseFloat(opt.querySelector('.v-opt-price').value) || 0;
-      if (name) options.push({ name, extraPrice });
+      const isSoldOut = opt.querySelector('.v-opt-soldout') ? opt.querySelector('.v-opt-soldout').checked : false;
+      if (name) options.push({ name, extraPrice, isSoldOut });
     });
     if (options.length > 0) groups.push({ label, options });
   });

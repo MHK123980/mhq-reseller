@@ -1,41 +1,80 @@
-<div class="p-6">
+<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
   <div class="mb-8">
-    <h1 class="text-2xl font-bold text-white mb-1">Dashboard</h1>
-    <p class="text-zinc-400 text-sm">Welcome back, <%= user.name %></p>
+    <h1 class="text-2xl sm:text-3xl font-bold text-white mb-1">Dashboard Overview</h1>
+    <p class="text-zinc-400 text-sm">Welcome back, <span class="text-white font-semibold"><%= user.name %></span></p>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-      <div class="w-10 h-10 bg-amber-500/20 text-amber-500 rounded-lg flex items-center justify-center mb-4">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Total Orders -->
+    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-zinc-700 transition-colors">
+      <div class="w-10 h-10 bg-amber-500/15 text-amber-400 rounded-xl flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
       </div>
-      <p class="text-zinc-400 text-sm font-medium mb-1">Total Orders</p>
-      <h3 class="text-3xl font-bold text-white" id="stat-total-orders">-</h3>
+      <p class="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Total Orders</p>
+      <h3 class="text-2xl sm:text-3xl font-black text-white" id="stat-total-orders"><%= typeof stats !== 'undefined' ? stats.totalOrders : '-' %></h3>
     </div>
     
-    <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-      <div class="w-10 h-10 bg-blue-500/20 text-blue-500 rounded-lg flex items-center justify-center mb-4">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <!-- Pending Orders -->
+    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-zinc-700 transition-colors">
+      <div class="w-10 h-10 bg-blue-500/15 text-blue-400 rounded-xl flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </div>
-      <p class="text-zinc-400 text-sm font-medium mb-1">Pending Orders</p>
-      <h3 class="text-3xl font-bold text-white" id="stat-pending-orders">-</h3>
+      <p class="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Pending Orders</p>
+      <h3 class="text-2xl sm:text-3xl font-black text-white" id="stat-pending-orders"><%= typeof stats !== 'undefined' ? stats.pendingOrders : '-' %></h3>
+    </div>
+
+    <!-- Pending Payments -->
+    <div class="bg-zinc-900 border border-amber-500/30 p-5 rounded-2xl hover:border-amber-500/60 transition-colors">
+      <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <p class="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">Pending Payments</p>
+      <h3 class="text-2xl sm:text-3xl font-black text-amber-400" id="stat-pending-payments"><%= typeof stats !== 'undefined' ? stats.pendingPayments : '-' %></h3>
+      <a href="/admin/dashboard/pending-payments" class="text-[11px] text-amber-400 hover:underline mt-1 inline-block">Review Proofs →</a>
     </div>
     
-    <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-      <div class="w-10 h-10 bg-green-500/20 text-green-500 rounded-lg flex items-center justify-center mb-4">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <!-- Delivered Orders -->
+    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-zinc-700 transition-colors">
+      <div class="w-10 h-10 bg-emerald-500/15 text-emerald-400 rounded-xl flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
       </div>
-      <p class="text-zinc-400 text-sm font-medium mb-1">Delivered Orders</p>
-      <h3 class="text-3xl font-bold text-white" id="stat-delivered-orders">-</h3>
+      <p class="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Delivered Orders</p>
+      <h3 class="text-2xl sm:text-3xl font-black text-white" id="stat-delivered-orders"><%= typeof stats !== 'undefined' ? stats.deliveredOrders : '-' %></h3>
     </div>
     
-    <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl">
-      <div class="w-10 h-10 bg-emerald-500/20 text-emerald-500 rounded-lg flex items-center justify-center mb-4">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <!-- Total Revenue -->
+    <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-zinc-700 transition-colors">
+      <div class="w-10 h-10 bg-green-500/15 text-green-400 rounded-xl flex items-center justify-center mb-3">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </div>
-      <p class="text-zinc-400 text-sm font-medium mb-1">Total Revenue</p>
-      <h3 class="text-3xl font-bold text-amber-400" id="stat-revenue">-</h3>
+      <p class="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Total Revenue</p>
+      <h3 class="text-2xl sm:text-3xl font-black text-amber-400" id="stat-revenue">Rs <%= typeof stats !== 'undefined' ? Number(stats.totalRevenue).toLocaleString() : '-' %></h3>
     </div>
+  </div>
+
+  <!-- Quick Action Navigation Tiles -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <a href="/admin/dashboard/orders" class="p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/50 transition-all flex items-center justify-between group">
+      <div>
+        <p class="text-white font-bold text-base group-hover:text-amber-400 transition-colors">Manage Orders</p>
+        <p class="text-zinc-400 text-xs mt-1">Create admin orders, print 3-inch slips, apply discounts</p>
+      </div>
+      <span class="text-amber-400 group-hover:translate-x-1 transition-transform text-xl">→</span>
+    </a>
+    <a href="/admin/dashboard/pending-payments" class="p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/50 transition-all flex items-center justify-between group">
+      <div>
+        <p class="text-white font-bold text-base group-hover:text-amber-400 transition-colors">Pending Payments</p>
+        <p class="text-zinc-400 text-xs mt-1">Verify payment screenshots and approve customer orders</p>
+      </div>
+      <span class="text-amber-400 group-hover:translate-x-1 transition-transform text-xl">→</span>
+    </a>
+    <a href="/admin/dashboard/payment-accounts" class="p-5 rounded-2xl bg-zinc-900/60 border border-zinc-800 hover:border-amber-500/50 transition-all flex items-center justify-between group">
+      <div>
+        <p class="text-white font-bold text-base group-hover:text-amber-400 transition-colors">Payment Accounts</p>
+        <p class="text-zinc-400 text-xs mt-1">Configure bank accounts, EasyPaisa, JazzCash for customer checkout</p>
+      </div>
+      <span class="text-amber-400 group-hover:translate-x-1 transition-transform text-xl">→</span>
+    </a>
   </div>
 </div>
 
@@ -44,16 +83,32 @@ async function loadStats() {
   try {
     const res = await fetch('/api/orders/stats');
     const data = await res.json();
-    document.getElementById('stat-total-orders').textContent = data.totalOrders;
-    document.getElementById('stat-pending-orders').textContent = data.pendingOrders;
-    document.getElementById('stat-delivered-orders').textContent = data.deliveredOrders;
-    document.getElementById('stat-revenue').textContent = 'Rs ' + data.totalRevenue;
+    const s = data.stats || data;
+
+    document.getElementById('stat-total-orders').textContent = s.totalOrders || 0;
+    document.getElementById('stat-pending-orders').textContent = s.pendingOrders || 0;
+    document.getElementById('stat-pending-payments').textContent = s.pendingPayments || 0;
+    document.getElementById('stat-delivered-orders').textContent = s.deliveredOrders || 0;
+    document.getElementById('stat-revenue').textContent = 'Rs ' + (Number(s.totalRevenue || 0)).toLocaleString();
     
-    if(data.pendingOrders > 0) {
-      const badge = document.getElementById('pending-badge');
-      if(badge) {
-        badge.textContent = data.pendingOrders;
-        badge.classList.remove('hidden');
+    // Update sidebar badges dynamically if present
+    const ordersBadge = document.getElementById('sidebar-pending-orders-badge');
+    if (ordersBadge) {
+      if (s.pendingOrders > 0) {
+        ordersBadge.textContent = s.pendingOrders;
+        ordersBadge.classList.remove('hidden');
+      } else {
+        ordersBadge.classList.add('hidden');
+      }
+    }
+
+    const paymentsBadge = document.getElementById('sidebar-pending-payments-badge');
+    if (paymentsBadge) {
+      if (s.pendingPayments > 0) {
+        paymentsBadge.textContent = s.pendingPayments;
+        paymentsBadge.classList.remove('hidden');
+      } else {
+        paymentsBadge.classList.add('hidden');
       }
     }
   } catch (err) {
@@ -61,16 +116,21 @@ async function loadStats() {
   }
 }
 
+// Initial load
 loadStats();
 </script>
 
 <!-- Pusher Real-time -->
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
-const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
-const channel = pusher.subscribe('mhq-reseller');
+try {
+  const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+  const channel = pusher.subscribe('mhq-reseller');
 
-channel.bind('order:new', () => loadStats());
-channel.bind('order:updated', () => loadStats());
-channel.bind('order:deleted', () => loadStats());
+  channel.bind('order:new', () => loadStats());
+  channel.bind('order:updated', () => loadStats());
+  channel.bind('order:deleted', () => loadStats());
+} catch (e) {
+  console.warn('Pusher client failed to connect:', e);
+}
 </script>

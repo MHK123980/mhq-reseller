@@ -163,18 +163,88 @@ function renderTrackingDetails(order, tracking) {
     <p class="text-zinc-600 text-[11px] mt-1">Once dispatched by our courier team, your tracking number will show here automatically.</p>
   </div>`;
 
-  const productsHtml = (order.products && order.products.length) ? order.products.map(p => `
-    <div class="flex items-center gap-3 py-2.5 border-b border-zinc-800/80 last:border-0">
-      ${p.product && p.product.images && p.product.images.length ? `<img src="${p.product.images[0]}" class="w-11 h-11 rounded-lg object-cover flex-shrink-0 border border-zinc-700 bg-zinc-800" />` : '<div class="w-11 h-11 rounded-lg bg-zinc-800 flex-shrink-0"></div>'}
+  const paymentStatusHtml = (() => {
+    if (order.paymentMethod === 'COD') {
+      return `
+        <div class="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-3 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+            <span class="text-zinc-300 font-medium">Payment Method:</span>
+            <span class="text-white font-bold">Cash on Delivery (COD)</span>
+          </div>
+          <span class="text-zinc-400">Due at doorstep</span>
+        </div>`;
+    }
+
+    if (order.paymentStatus === 'Under Review') {
+      return `
+        <div class="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3.5 text-xs flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-amber-400 animate-ping flex-shrink-0"></span>
+            <div>
+              <p class="text-amber-400 font-bold">Payment Status: Under Review</p>
+              <p class="text-zinc-400 text-[11px] mt-0.5">Your transfer proof is being verified by our accounts team.</p>
+            </div>
+          </div>
+          <span class="bg-amber-500/20 text-amber-300 font-semibold px-2.5 py-1 rounded-full text-[10px]">Under Review</span>
+        </div>`;
+    }
+
+    if (order.paymentStatus === 'Approved') {
+      return `
+        <div class="bg-emerald-500/10 border border-emerald-500/40 rounded-xl p-3.5 text-xs flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 flex-shrink-0"></span>
+            <div>
+              <p class="text-emerald-400 font-bold">Payment Approved - Order Status: ${order.status}</p>
+              <p class="text-zinc-400 text-[11px] mt-0.5">Payment verified. Your order is being processed for dispatch.</p>
+            </div>
+          </div>
+          <span class="bg-emerald-500/20 text-emerald-300 font-semibold px-2.5 py-1 rounded-full text-[10px]">Verified ✓</span>
+        </div>`;
+    }
+
+    if (order.paymentStatus === 'Declined') {
+      return `
+        <div class="bg-red-500/10 border border-red-500/40 rounded-xl p-3.5 text-xs flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-400 flex-shrink-0"></span>
+            <div>
+              <p class="text-red-400 font-bold">Payment Declined</p>
+              <p class="text-zinc-400 text-[11px] mt-0.5">We could not verify your payment screenshot. Please contact support.</p>
+            </div>
+          </div>
+          <span class="bg-red-500/20 text-red-300 font-semibold px-2.5 py-1 rounded-full text-[10px]">Declined ✖</span>
+        </div>`;
+    }
+
+    return '';
+  })();
+
+  const productsHtml = (order.products && order.products.length) ? order.products.map(p => {
+    const prodName = p.product ? p.product.name : 'Product';
+    const prodImg = (p.product && p.product.images && p.product.images.length) ? p.product.images[0] : '';
+    const hasCompDisc = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0 && p.companyDiscountedPrice < p.priceAtPurchase);
+    
+    return `
+    <div class="flex items-center gap-3 py-3 border-b border-zinc-800/80 last:border-0">
+      ${prodImg ? `<img src="${prodImg}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-zinc-700 bg-zinc-800" />` : '<div class="w-12 h-12 rounded-xl bg-zinc-800 flex-shrink-0"></div>'}
       <div class="flex-1 min-w-0">
-        <p class="text-white text-xs sm:text-sm font-semibold truncate">${p.product ? p.product.name : 'Product'}</p>
+        <p class="text-white text-xs sm:text-sm font-semibold truncate">${prodName}</p>
         ${p.selectedVariant ? `<p class="text-amber-500/90 text-[11px] font-medium mt-0.5 truncate">${p.selectedVariant}</p>` : ''}
+        ${hasCompDisc ? `<div class="mt-1 flex items-center gap-1.5"><span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">Discounted Price by Company: Rs ${p.companyDiscountedPrice.toLocaleString()}</span></div>` : ''}
       </div>
       <div class="text-right flex-shrink-0">
         <p class="text-zinc-400 text-xs">Qty: ${p.quantity}</p>
-        <p class="text-amber-400 text-xs font-bold">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</p>
+        ${hasCompDisc ? `
+          <p class="text-zinc-500 text-[11px] line-through">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</p>
+          <p class="text-amber-400 text-xs font-bold">Rs ${(p.companyDiscountedPrice * p.quantity).toLocaleString()}</p>
+        ` : `
+          <p class="text-amber-400 text-xs font-bold">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</p>
+        `}
       </div>
-    </div>`).join('') : '';
+    </div>`;
+  }).join('') : '';
 
   result.innerHTML = `
     <div class="space-y-4">
@@ -191,10 +261,11 @@ function renderTrackingDetails(order, tracking) {
             </span>
           </div>
         </div>
-        <div class="flex justify-between items-center text-xs text-zinc-400">
-          <span>Customer: <strong class="text-white">${order.customerName || 'Valued Customer'}</strong></span>
+        <div class="flex justify-between items-center text-xs text-zinc-400 mb-3">
+          <span>Customer: <strong class="text-white">${order.customerDetails ? order.customerDetails.fullName : (order.customerName || 'Valued Customer')}</strong></span>
           <span>${new Date(order.createdAt).toLocaleDateString('en-PK', { year:'numeric', month:'short', day:'numeric' })}</span>
         </div>
+        ${paymentStatusHtml}
       </div>
 
       <!-- Order Status Steps -->
@@ -217,9 +288,36 @@ function renderTrackingDetails(order, tracking) {
         <div class="divide-y divide-zinc-800/60">
           ${productsHtml}
         </div>
-        <div class="flex justify-between items-center pt-3 border-t border-zinc-800 mt-2">
-          <span class="text-zinc-400 text-xs sm:text-sm font-medium">Total Amount</span>
-          <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${order.totalAmount.toLocaleString()}</span>
+        <div class="space-y-1.5 pt-3 border-t border-zinc-800 mt-2 text-xs">
+          ${order.companyDiscount > 0 ? `
+            <div class="flex justify-between text-zinc-400">
+              <span>Original Amount</span>
+              <span class="line-through">Rs ${((order.originalTotalAmount || order.totalAmount) + order.companyDiscount).toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between text-amber-400 font-semibold">
+              <span>Discount by Company</span>
+              <span>- Rs ${order.companyDiscount.toLocaleString()}</span>
+            </div>
+          ` : ''}
+          <div class="flex justify-between items-center text-white font-bold text-sm">
+            <span>Total Payable</span>
+            <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${order.totalAmount.toLocaleString()}</span>
+          </div>
+          ${order.paymentMethod === 'Pay Some Advance' ? `
+            <div class="flex justify-between text-emerald-400 text-xs font-semibold pt-1">
+              <span>Advance Paid</span>
+              <span>Rs ${(order.advanceAmount || 0).toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between text-white font-bold text-xs">
+              <span>Remaining Balance on Delivery</span>
+              <span class="text-amber-300">Rs ${(order.totalDueAmount !== undefined ? order.totalDueAmount : (order.totalAmount - (order.advanceAmount || 0))).toLocaleString()}</span>
+            </div>
+          ` : order.paymentMethod === 'Advance Payment' ? `
+            <div class="flex justify-between text-emerald-400 text-xs font-semibold pt-1">
+              <span>Full Advance Paid</span>
+              <span>Rs ${order.totalAmount.toLocaleString()} (Rs 0 due on delivery)</span>
+            </div>
+          ` : ''}
         </div>
       </div>
     </div>`;

@@ -47,6 +47,7 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const courierRoutes = require('./routes/courierRoutes');
+const paymentAccountRoutes = require('./routes/paymentAccountRoutes');
 
 // Google Search Console verification file route
 app.get('/google3757840108824473.html', (req, res) => {
@@ -82,6 +83,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/courier', courierRoutes);
+app.use('/api/payment-accounts', paymentAccountRoutes);
 
 const Setting = require('./models/Setting');
 const { protectAPI } = require('./middleware/auth');

@@ -78,16 +78,30 @@ const finalPrice = product.hasDiscount && product.discountedPrice > 0
       <!-- Variants -->
       <% if (product.variants && product.variants.length > 0) { %>
       <div class="mb-6 space-y-4" id="variants-section">
-        <% product.variants.forEach((v, vIdx) => { %>
+        <% product.variants.forEach((v, vIdx) => { 
+          // find first non-sold-out option for default check
+          let defaultCheckedIdx = v.options.findIndex(o => !o.isSoldOut);
+          if (defaultCheckedIdx === -1) defaultCheckedIdx = 0;
+        %>
         <div>
           <label class="text-sm font-semibold text-zinc-300 block mb-2"><%= v.label %></label>
           <div class="flex flex-wrap gap-2">
-            <% v.options.forEach((opt, oIdx) => { %>
-            <label class="cursor-pointer">
-              <input type="radio" name="variant-<%= vIdx %>" value="<%= opt.name %>" data-price="<%= opt.extraPrice %>" data-label="<%= v.label %>" class="peer hidden" <%= oIdx === 0 ? 'checked' : '' %>>
-              <div class="px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400 peer-checked:bg-amber-600/20 peer-checked:border-amber-500 peer-checked:text-amber-400 transition-colors text-sm text-center">
-                <%= opt.name %>
-                <% if (opt.extraPrice > 0) { %><span class="block text-[10px] opacity-70">+Rs <%= opt.extraPrice %></span><% } %>
+            <% v.options.forEach((opt, oIdx) => { 
+              const isSold = opt.isSoldOut;
+            %>
+            <label class="<%= isSold ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' %>">
+              <input type="radio" name="variant-<%= vIdx %>" value="<%= opt.name %>" 
+                data-price="<%= opt.extraPrice %>" data-label="<%= v.label %>" 
+                class="peer hidden" 
+                <%= (!isSold && oIdx === defaultCheckedIdx) ? 'checked' : '' %>
+                <%= isSold ? 'disabled' : '' %>>
+              <div class="px-4 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-400 <%= isSold ? 'line-through bg-zinc-950/60 border-zinc-800 text-zinc-600' : 'peer-checked:bg-amber-600/20 peer-checked:border-amber-500 peer-checked:text-amber-400 hover:border-zinc-500' %> transition-colors text-sm text-center">
+                <span><%= opt.name %></span>
+                <% if (isSold) { %>
+                  <span class="block text-[10px] text-red-500 font-bold no-underline">(Sold Out)</span>
+                <% } else if (opt.extraPrice > 0) { %>
+                  <span class="block text-[10px] opacity-70">+Rs <%= opt.extraPrice %></span>
+                <% } %>
               </div>
             </label>
             <% }) %>
@@ -131,6 +145,7 @@ function addToCart() {
   const image = '<%= product.images && product.images.length ? product.images[0] : "" %>';
   const deliveryCharges = <%= product.deliveryCharges || 0 %>;
   const isFreeDelivery = <%= product.isFreeDelivery ? 'true' : 'false' %>;
+  const closeCOD = <%= product.closeCOD ? 'true' : 'false' %>;
   
   // Handle Variants
   let selectedVariant = [];
@@ -147,7 +162,7 @@ function addToCart() {
   if (existing) {
     existing.quantity += qty;
   } else {
-    cart.push({ id, name, price, image, quantity: qty, deliveryCharges, isFreeDelivery, selectedVariant: variantString });
+    cart.push({ id, name, price, image, quantity: qty, deliveryCharges, isFreeDelivery, selectedVariant: variantString, closeCOD });
   }
   localStorage.setItem('mhq_cart', JSON.stringify(cart));
   updateCartCount();

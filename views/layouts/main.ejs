@@ -189,23 +189,108 @@
     /* Never hide elements with reveal */
     .reveal { opacity: 1 !important; transform: none !important; }
     html { scroll-behavior: smooth; }
+
+    /* --- Delivery Cycle Loader Keyframes --- */
+    @keyframes vanCircularOrbit {
+      0% { transform: rotate(0deg) translate(110px) rotate(0deg); }
+      100% { transform: rotate(360deg) translate(110px) rotate(-360deg); }
+    }
+    @keyframes parcelCycle {
+      0% { opacity: 0; transform: translate(-140px, 0) scale(0.6); }
+      15% { opacity: 1; transform: translate(-70px, 0) scale(1); }
+      40% { opacity: 1; transform: translate(50px, -40px) scale(0.9); }
+      60% { opacity: 1; transform: translate(110px, 0) scale(0.9); }
+      80% { opacity: 1; transform: translate(145px, 0) scale(0.6); }
+      90%, 100% { opacity: 0; transform: translate(155px, 0) scale(0.4); }
+    }
+    .van-orbit {
+      animation: vanCircularOrbit 2.4s linear infinite;
+      transform-origin: center center;
+    }
+    .parcel-anim {
+      animation: parcelCycle 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .fast-mode .van-orbit {
+      animation-duration: 1.0s !important;
+    }
+    .fast-mode .parcel-anim {
+      animation-duration: 1.0s !important;
+    }
   </style>
 </head>
 <body class="min-h-screen text-white font-sans">
-  <% const hasSaleBar = typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.enabled && saleAnnouncement.text; %>
 
-  <!-- Mega Sale / Top Announcement Bar (Controlled via Admin Settings) -->
+  <!-- LUXURY ANIMATED DELIVERY LOADER (Warehouse -> Courier Van -> Customer Home) -->
+  <div id="site-loader" class="fixed inset-0 z-[99999] bg-[#09090b] flex flex-col items-center justify-center p-4 transition-opacity duration-300">
+    <div class="relative w-80 h-64 flex items-center justify-center" id="loader-stage">
+      
+      <!-- Circular Logistics Delivery Orbit Track -->
+      <div class="absolute w-[220px] h-[220px] rounded-full border border-dashed border-amber-500/30"></div>
+      
+      <!-- Stationary Warehouse on Left (Straight Fitted) -->
+      <div class="absolute left-1 z-20 flex flex-col items-center">
+        <div class="w-14 h-12 bg-zinc-900 border border-amber-500/60 rounded-xl flex flex-col items-center justify-center shadow-xl shadow-amber-500/10">
+          <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <span class="text-[9px] font-bold text-amber-400 tracking-wider mt-1 text-center font-mono">WAREHOUSE</span>
+        <span class="text-[8px] text-zinc-400 font-medium leading-none">MHQ Reseller</span>
+      </div>
+
+      <!-- Traveling Transport Van (Runs in Circle) -->
+      <div class="van-orbit absolute flex items-center justify-center z-30">
+        <div class="bg-amber-500 text-black px-2 py-1 rounded-lg shadow-lg flex items-center gap-1 border border-amber-300">
+          <svg class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
+          <span class="text-[8px] font-black uppercase tracking-tighter">MHQ VAN</span>
+        </div>
+      </div>
+
+      <!-- Parcel Animation (Leaves dock -> rides -> delivers) -->
+      <div class="parcel-anim absolute z-25 flex items-center justify-center pointer-events-none">
+        <div class="w-4 h-4 bg-amber-600 border border-amber-300 rounded-sm flex items-center justify-center shadow-md">
+          <div class="w-full h-[1px] bg-amber-300"></div>
+        </div>
+      </div>
+
+      <!-- Destination Customer Home on Right (House + User Icon) -->
+      <div class="absolute right-1 z-20 flex flex-col items-center">
+        <div class="w-14 h-12 bg-zinc-900 border border-emerald-500/60 rounded-xl flex flex-col items-center justify-center shadow-xl shadow-emerald-500/10">
+          <div class="relative">
+            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center">
+              <svg class="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+            </div>
+          </div>
+        </div>
+        <span class="text-[9px] font-bold text-emerald-400 tracking-wider mt-1 text-center font-mono">CUSTOMER</span>
+        <span class="text-[8px] text-zinc-400 font-medium leading-none">Doorstep COD</span>
+      </div>
+    </div>
+
+    <!-- Loading status & fast progress bar -->
+    <div class="mt-4 text-center max-w-xs">
+      <p class="text-xs font-bold text-white tracking-widest font-serif">MHQ RESELLER <span class="text-amber-400 font-normal">(BROKER)</span></p>
+      <p class="text-[11px] text-zinc-400 mt-0.5">Express Logistics & Verified Dispatch</p>
+      <div class="w-48 h-1 bg-zinc-800 rounded-full overflow-hidden mx-auto mt-3">
+        <div id="loader-bar" class="h-full bg-gradient-to-r from-amber-500 to-amber-300 w-0 transition-all duration-300"></div>
+      </div>
+    </div>
+  </div>
+
+  <% 
+    // Top Announcement Bar condition: ONLY ON HOMEPAGE, and when enabled with non-empty text
+    const hasSaleBar = (typeof isHome !== 'undefined' && isHome) && 
+                       (typeof saleAnnouncement !== 'undefined' && saleAnnouncement && saleAnnouncement.enabled && saleAnnouncement.text); 
+  %>
+
+  <!-- Mega Sale / Top Announcement Bar (Homepage only, controlled via Admin Settings) -->
   <% if (hasSaleBar) { %>
-  <div id="top-announcement-bar" class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black py-1.5 px-3 text-[11px] sm:text-xs font-bold text-center tracking-wide flex items-center justify-center gap-2 fixed top-0 left-0 right-0 z-50 border-b border-amber-600/40 shadow-sm select-none">
+  <div id="top-announcement-bar" class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black py-1.5 px-4 text-xs font-bold text-center tracking-wide flex items-center justify-center gap-2 fixed top-0 left-0 right-0 z-50 border-b border-amber-600/40 shadow-sm select-none">
     <span><%= saleAnnouncement.text %></span>
-    <% if (saleAnnouncement.link) { %>
-    <a href="<%= saleAnnouncement.link %>" class="underline hover:text-white transition-colors ml-1 font-black">Shop Now →</a>
-    <% } %>
   </div>
   <% } %>
 
   <!-- Navbar -->
-  <nav class="navbar-glass fixed <%= hasSaleBar ? 'top-8' : 'top-0' %> left-0 right-0 z-50 transition-all">
+  <nav class="navbar-glass fixed <%= hasSaleBar ? 'top-8' : 'top-0' %> left-0 right-0 z-40 transition-all">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
@@ -220,10 +305,12 @@
         </a>
 
         <!-- Desktop Nav Links -->
-        <div class="hidden md:flex items-center gap-8">
+        <div class="hidden md:flex items-center gap-7">
           <a href="/" class="nav-link">Home</a>
           <a href="/products" class="nav-link">Products</a>
           <a href="/featuredproducts" class="nav-link">Featured</a>
+          <a href="/about" class="nav-link">About Us</a>
+          <a href="/contact" class="nav-link">Contact Us</a>
           <a href="/track-order" class="nav-link">Track Order</a>
         </div>
 
@@ -296,6 +383,14 @@
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
         Featured Products
       </a>
+      <a href="/about" onclick="closeMobileSidebar()" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+        <svg class="w-4 h-4 text-amber-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        About Us
+      </a>
+      <a href="/contact" onclick="closeMobileSidebar()" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
+        <svg class="w-4 h-4 text-amber-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Contact Us
+      </a>
       <a href="/track-order" onclick="closeMobileSidebar()" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-zinc-300 hover:text-amber-400 hover:bg-amber-500/10 transition-all text-sm font-medium">
         <svg class="w-4 h-4 text-amber-500/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
         Track Order
@@ -312,7 +407,6 @@
         </button>
 
         <div id="mob-categories-dropdown" class="hidden mt-2 p-2 bg-zinc-900/90 rounded-2xl border border-zinc-800/80">
-          <!-- Live category search input inside sidebar -->
           <div class="relative mb-2 px-1">
             <input type="text" id="mob-cat-search-input" placeholder="Search categories..." oninput="filterMobileCatList(this.value)"
               class="w-full bg-zinc-800 text-white placeholder-zinc-500 text-xs px-3 py-2 rounded-xl border border-zinc-700 focus:border-amber-500 outline-none" />
@@ -341,10 +435,7 @@
 
   <!-- LUXURY SEARCH OVERLAY -->
   <div id="search-overlay" class="fixed inset-0 z-[999] hidden">
-    <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/90 backdrop-blur-2xl cursor-pointer" onclick="closeSearch()"></div>
-    
-    <!-- Search modal container -->
     <div class="relative z-10 flex flex-col items-center justify-start pt-16 sm:pt-24 px-4 min-h-screen">
       <div class="w-full max-w-2xl" id="search-box-wrapper">
         <div class="relative group">
@@ -378,37 +469,60 @@
   <!-- Footer -->
   <footer class="mt-24 border-t border-zinc-800/60">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
         <!-- Brand -->
-        <div>
+        <div class="md:col-span-1">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
               <span class="text-black font-black text-sm">M</span>
             </div>
             <span class="text-white font-bold font-serif">MHQ Reseller <span class="text-zinc-500 font-normal">(Broker)</span></span>
           </div>
-          <p class="text-zinc-500 text-sm leading-relaxed">Premium quality products at the best prices. Trusted wholesale and retail service, delivered right to your doorstep.</p>
+          <p class="text-zinc-500 text-sm leading-relaxed">
+            Premium quality products at the best prices. A Trusted Nationwide & International Trader based in Hyderabad, Pakistan.
+          </p>
         </div>
         <!-- Quick Links -->
         <div>
-          <h4 class="text-white font-semibold mb-3 text-sm">Quick Links</h4>
+          <h4 class="text-white font-semibold mb-3 text-sm">Navigation</h4>
           <div class="space-y-2">
             <a href="/" class="block text-zinc-500 hover:text-amber-400 text-sm transition-colors">Home</a>
             <a href="/products" class="block text-zinc-500 hover:text-amber-400 text-sm transition-colors">All Products</a>
             <a href="/featuredproducts" class="block text-zinc-500 hover:text-amber-400 text-sm transition-colors">Featured Products</a>
-            <a href="/track-order" class="block text-zinc-500 hover:text-amber-400 text-sm transition-colors">Track Order</a>
+            <a href="/about" class="block text-zinc-500 hover:text-amber-400 text-sm transition-colors">About Us</a>
+            <a href="/contact" class="block text-zinc-500 hover:text-amber-400 text-sm transition-colors">Contact Us</a>
           </div>
         </div>
         <!-- Customer Service -->
         <div>
-          <h4 class="text-white font-semibold mb-3 text-sm">Customer Service</h4>
+          <h4 class="text-white font-semibold mb-3 text-sm">Customer Care</h4>
           <div class="space-y-2">
-            <p class="text-zinc-500 text-sm">📦 Express Nationwide & International Dispatch</p>
-            <p class="text-zinc-500 text-sm">✅ 100% Quality Guaranteed</p>
+            <p class="text-zinc-500 text-sm">📦 Fast & Reliable Courier Dispatch</p>
+            <p class="text-zinc-500 text-sm">✅ Verified Stock Inspection</p>
             <p class="text-zinc-500 text-sm">🛡️ Secure Cash on Delivery (COD)</p>
-            <a href="/track-order" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 text-sm transition-colors mt-1">
-              Track your order →
+            <a href="/track-order" class="inline-flex items-center gap-1 text-amber-400 hover:text-amber-300 text-sm transition-colors mt-1 font-medium">
+              Track Your Parcel Live &rarr;
             </a>
+          </div>
+        </div>
+        <!-- Direct Contact Info -->
+        <div>
+          <h4 class="text-white font-semibold mb-3 text-sm">Direct Contact</h4>
+          <div class="space-y-2 text-sm text-zinc-400">
+            <p class="flex items-center gap-2">
+              <span class="text-amber-400 font-bold">Ph:</span>
+              <a href="tel:+923313884546" class="hover:text-white transition-colors">+92 331 3884546</a>
+            </p>
+            <p class="flex items-center gap-2">
+              <span class="text-amber-400 font-bold">Mail:</span>
+              <a href="mailto:mhq123980@gmail.com" class="hover:text-white transition-colors break-all text-xs">mhq123980@gmail.com</a>
+            </p>
+            <div class="pt-2">
+              <a href="https://wa.me/923313884546" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-600 hover:text-white text-xs font-semibold transition-all">
+                <span>Directly Contact on WhatsApp</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -416,7 +530,7 @@
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
         <div>
           <p class="text-zinc-500 text-xs">© 2025 MHQ Reseller (Broker). All rights reserved.</p>
-          <p class="text-zinc-600 text-[11px] mt-0.5">Nationwide & International Dispatch • Guaranteed Quality</p>
+          <p class="text-zinc-600 text-[11px] mt-0.5">Nationwide & International Dispatch • Hyderabad, Sindh, Pakistan</p>
         </div>
         <div>
           <a href="https://wa.me/message/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-zinc-400 hover:text-amber-400 transition-colors font-medium">
@@ -432,6 +546,45 @@
   <script src="/js/cart.js"></script>
   <script src="/js/main.js"></script>
   <script>
+    // --- Animated Delivery Loader Control ---
+    let _loaderDismissed = false;
+    const siteLoader = document.getElementById('site-loader');
+    const loaderBar = document.getElementById('loader-bar');
+
+    // Smoothly progress loader bar
+    if (loaderBar) {
+      setTimeout(() => { if (loaderBar) loaderBar.style.width = '60%'; }, 150);
+      setTimeout(() => { if (loaderBar) loaderBar.style.width = '85%'; }, 900);
+    }
+
+    function dismissLoader(fast = false) {
+      if (_loaderDismissed || !siteLoader) return;
+      _loaderDismissed = true;
+      if (loaderBar) loaderBar.style.width = '100%';
+      
+      if (fast) {
+        siteLoader.classList.add('fast-mode');
+      }
+
+      setTimeout(() => {
+        siteLoader.style.opacity = '0';
+        siteLoader.style.pointerEvents = 'none';
+        setTimeout(() => {
+          if (siteLoader.parentNode) siteLoader.style.display = 'none';
+        }, 320);
+      }, fast ? 200 : 350);
+    }
+
+    // Hard ceiling: Guaranteed finish within 3.0 seconds max
+    const hardTimeout = setTimeout(() => {
+      dismissLoader(true);
+    }, 3000);
+
+    // Accelerate to 2x fast-mode and finish when page resources ready
+    window.addEventListener('load', () => {
+      dismissLoader(true);
+    });
+
     // --- Mobile Sidebar Drawer Handlers ---
     function openMobileSidebar() {
       const sidebar = document.getElementById('mobile-sidebar');
