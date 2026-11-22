@@ -488,10 +488,12 @@ const remove = async (req, res) => {
 
 const getStats = async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments();
-    const pendingOrders = await Order.countDocuments({ status: 'Pending' });
-    const pendingPayments = await Order.countDocuments({ paymentStatus: 'Under Review' });
-    const deliveredOrdersList = await Order.find({ status: 'Delivered' });
+    const [totalOrders, pendingOrders, pendingPayments, deliveredOrdersList] = await Promise.all([
+      Order.countDocuments(),
+      Order.countDocuments({ status: 'Pending' }),
+      Order.countDocuments({ paymentStatus: 'Under Review' }),
+      Order.find({ status: 'Delivered' }).select('totalAmount').lean()
+    ]);
     const deliveredOrders = deliveredOrdersList.length;
     const totalRevenue = deliveredOrdersList.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
 

@@ -33,7 +33,7 @@
           <span class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md font-bold inline-block mb-1">
             <%= o.orderId || ('#' + o._id.toString().slice(-6)) %>
           </span>
-          <p class="text-[11px] text-zinc-500"><%= new Date(o.createdAt).toLocaleString('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
+          <p class="text-[11px] text-zinc-500"><%= new Date(o.createdAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) %></p>
         </div>
         <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>

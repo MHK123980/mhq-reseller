@@ -224,24 +224,31 @@ function renderTrackingDetails(order, tracking) {
   const productsHtml = (order.products && order.products.length) ? order.products.map(p => {
     const prodName = p.product ? p.product.name : 'Product';
     const prodImg = (p.product && p.product.images && p.product.images.length) ? p.product.images[0] : '';
+    const origBase = Number(p.originalBasePrice || p.priceAtPurchase);
+    const effectivePrice = Number(p.priceAtPurchase);
+    const hasProductDisc = (origBase > effectivePrice);
     const hasCompDisc = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0 && p.companyDiscountedPrice < p.priceAtPurchase);
-    
+    const dc = p.isFreeDelivery ? 0 : (p.deliveryCharges || 0);
+
     return `
     <div class="flex items-center gap-3 py-3 border-b border-zinc-800/80 last:border-0">
       ${prodImg ? `<img src="${prodImg}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-zinc-700 bg-zinc-800" />` : '<div class="w-12 h-12 rounded-xl bg-zinc-800 flex-shrink-0"></div>'}
       <div class="flex-1 min-w-0">
         <p class="text-white text-xs sm:text-sm font-semibold truncate">${prodName}</p>
         ${p.selectedVariant ? `<p class="text-amber-500/90 text-[11px] font-medium mt-0.5 truncate">${p.selectedVariant}</p>` : ''}
-        ${hasCompDisc ? `<div class="mt-1 flex items-center gap-1.5"><span class="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">Discounted Price by Company: Rs ${p.companyDiscountedPrice.toLocaleString()}</span></div>` : ''}
+        
+        <div class="mt-1">
+          ${hasProductDisc ? `<div class="text-zinc-500 text-[10px] line-through leading-tight font-normal">Rs ${origBase.toLocaleString()}</div>` : ''}
+          <div class="text-amber-400 font-bold text-xs leading-tight">Rs ${effectivePrice.toLocaleString()} <span class="text-zinc-500 font-normal text-[11px]">× ${p.quantity}</span></div>
+        </div>
+
+        ${hasCompDisc ? `<div class="mt-1"><span class="bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">Discounted by Company: Rs ${p.companyDiscountedPrice.toLocaleString()}</span></div>` : ''}
+        
+        ${p.isFreeDelivery ? '<p class="text-emerald-400 text-[10px] font-medium mt-0.5">✓ Free Delivery</p>' : (dc > 0 ? `<p class="text-zinc-500 text-[10px] font-medium mt-0.5">Delivery: Rs ${dc}</p>` : '')}
       </div>
       <div class="text-right flex-shrink-0">
-        <p class="text-zinc-400 text-xs">Qty: ${p.quantity}</p>
-        ${hasCompDisc ? `
-          <p class="text-zinc-500 text-[11px] line-through">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</p>
-          <p class="text-amber-400 text-xs font-bold">Rs ${(p.companyDiscountedPrice * p.quantity).toLocaleString()}</p>
-        ` : `
-          <p class="text-amber-400 text-xs font-bold">Rs ${(p.priceAtPurchase * p.quantity).toLocaleString()}</p>
-        `}
+        ${hasProductDisc ? `<p class="text-zinc-500 text-[10px] line-through">Rs ${(origBase * p.quantity).toLocaleString()}</p>` : ''}
+        <p class="text-amber-400 text-xs sm:text-sm font-bold">Rs ${(effectivePrice * p.quantity).toLocaleString()}</p>
       </div>
     </div>`;
   }).join('') : '';
@@ -263,7 +270,7 @@ function renderTrackingDetails(order, tracking) {
         </div>
         <div class="flex justify-between items-center text-xs text-zinc-400 mb-3">
           <span>Customer: <strong class="text-white">${order.customerDetails ? order.customerDetails.fullName : (order.customerName || 'Valued Customer')}</strong></span>
-          <span>${new Date(order.createdAt).toLocaleDateString('en-PK', { year:'numeric', month:'short', day:'numeric' })}</span>
+          <span>${new Date(order.createdAt).toLocaleDateString('en-PK', { timeZone: 'Asia/Karachi', year:'numeric', month:'short', day:'numeric' })}</span>
         </div>
         ${paymentStatusHtml}
       </div>
@@ -289,20 +296,20 @@ function renderTrackingDetails(order, tracking) {
           ${productsHtml}
         </div>
         <div class="space-y-1.5 pt-3 border-t border-zinc-800 mt-2 text-xs">
+          <div class="flex justify-between items-center text-white font-bold text-sm">
+            <span>Total Amount</span>
+            <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${((order.originalTotalAmount || order.totalAmount) + (order.companyDiscount || 0)).toLocaleString()}</span>
+          </div>
           ${order.companyDiscount > 0 ? `
-            <div class="flex justify-between text-zinc-400">
-              <span>Original Amount</span>
-              <span class="line-through">Rs ${((order.originalTotalAmount || order.totalAmount) + order.companyDiscount).toLocaleString()}</span>
-            </div>
-            <div class="flex justify-between text-amber-400 font-semibold">
-              <span>Discount by Company</span>
+            <div class="flex justify-between text-amber-400 font-semibold pt-1 border-t border-dashed border-zinc-800">
+              <span>Discounted By Company:</span>
               <span>- Rs ${order.companyDiscount.toLocaleString()}</span>
             </div>
+            <div class="flex justify-between items-center text-emerald-400 font-black text-sm">
+              <span>Discounted Total Payable:</span>
+              <span>Rs ${order.totalAmount.toLocaleString()}</span>
+            </div>
           ` : ''}
-          <div class="flex justify-between items-center text-white font-bold text-sm">
-            <span>Total Payable</span>
-            <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${order.totalAmount.toLocaleString()}</span>
-          </div>
           ${order.paymentMethod === 'Pay Some Advance' ? `
             <div class="flex justify-between text-emerald-400 text-xs font-semibold pt-1">
               <span>Advance Paid</span>

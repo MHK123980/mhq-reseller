@@ -351,7 +351,13 @@
     </div>
     
     <h2 id="success-headline" class="text-2xl font-bold text-white mb-2">Order Received!</h2>
-    <p id="success-subnote" class="text-zinc-300 text-xs sm:text-sm mb-4 leading-relaxed"></p>
+    <p id="success-subnote" class="text-zinc-300 text-xs sm:text-sm mb-3 leading-relaxed"></p>
+
+    <!-- Estimated Delivery Time Badge (Visible for all payment methods: COD, PSA, Full Advance) -->
+    <div class="flex items-center justify-center gap-2 text-xs text-amber-400 font-semibold mb-4 bg-zinc-900/90 border border-zinc-800 rounded-xl py-2.5 px-3">
+      <svg class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Estimated Delivery: <strong class="text-white"><%= estimatedDeliveryTime || '3-5 Working Days' %></strong></span>
+    </div>
 
     <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-4">
       <p class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-1">Your Order ID</p>
@@ -788,4 +794,37 @@ async function handlePlaceOrder(e) {
 
 // Initialize on page load
 loadCheckoutCart();
+</script>
+
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+try {
+  const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+  const channel = pusher.subscribe('mhq-reseller');
+
+  async function syncPaymentAccountsRealtime() {
+    try {
+      const res = await fetch('/api/payment-accounts?public=true');
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.accounts)) {
+        PRELOADED_ACCOUNTS = data.accounts;
+        renderBankAccountsList();
+        
+        // If current selection is no longer valid, select the first
+        const stillExists = PRELOADED_ACCOUNTS.some(a => a.bankCode.toLowerCase() === (selectedBankCode || '').toLowerCase());
+        if (!stillExists && PRELOADED_ACCOUNTS.length > 0) {
+          handleSelectBank(PRELOADED_ACCOUNTS[0].bankCode);
+        } else if (stillExists) {
+          handleSelectBank(selectedBankCode);
+        }
+      }
+    } catch(e) {}
+  }
+
+  channel.bind('payment-account:new', () => syncPaymentAccountsRealtime());
+  channel.bind('payment-account:updated', () => syncPaymentAccountsRealtime());
+  channel.bind('payment-account:deleted', () => syncPaymentAccountsRealtime());
+} catch(e) {
+  console.warn('Checkout Pusher listener error:', e);
+}
 </script>

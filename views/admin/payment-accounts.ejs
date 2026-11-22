@@ -133,11 +133,6 @@
       </div>
 
       <div>
-        <label class="block text-xs text-zinc-300 mb-1">Logo URL (Optional)</label>
-        <input type="url" id="acc-logo" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors" placeholder="https://..." />
-      </div>
-
-      <div>
         <label class="block text-xs text-zinc-300 mb-1">Customer Instructions (Optional)</label>
         <textarea id="acc-instructions" rows="2" class="w-full bg-zinc-900 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors resize-none" placeholder="e.g. Mention your Order ID in transfer remarks and take a clear screenshot."></textarea>
       </div>
@@ -189,7 +184,6 @@ function openEditAccountModal(b64Data) {
   document.getElementById('acc-code').value = acc.bankCode;
   document.getElementById('acc-title').value = acc.accountTitle;
   document.getElementById('acc-number').value = acc.accountNumber;
-  document.getElementById('acc-logo').value = acc.logoUrl || '';
   document.getElementById('acc-instructions').value = acc.instructions || '';
   document.getElementById('acc-active').checked = Boolean(acc.isActive);
 
@@ -215,14 +209,12 @@ function onPresetBankSelected(code) {
   if (code === 'custom') {
     document.getElementById('acc-name').value = '';
     document.getElementById('acc-code').value = '';
-    document.getElementById('acc-logo').value = '';
     return;
   }
   const bank = PRESET_BANKS_DATA.find(b => b.code === code);
   if (bank) {
     document.getElementById('acc-name').value = bank.name;
     document.getElementById('acc-code').value = bank.code;
-    document.getElementById('acc-logo').value = bank.logoUrl || '';
   }
 }
 
@@ -239,7 +231,6 @@ async function saveAccount(e) {
     bankCode: document.getElementById('acc-code').value.trim().toUpperCase(),
     accountTitle: document.getElementById('acc-title').value.trim(),
     accountNumber: document.getElementById('acc-number').value.trim(),
-    logoUrl: document.getElementById('acc-logo').value.trim(),
     instructions: document.getElementById('acc-instructions').value.trim(),
     isActive: document.getElementById('acc-active').checked
   };
@@ -255,7 +246,8 @@ async function saveAccount(e) {
     });
     const data = await res.json();
     if (res.ok && data.success) {
-      window.location.reload();
+      closeAccountModal();
+      upsertAccountCard(data.account);
     } else {
       alert(data.message || 'Error saving payment account');
     }
@@ -282,4 +274,89 @@ async function deleteAccount(id, name) {
     alert('Network error');
   }
 }
+
+function buildAccountCardHtml(acc) {
+  const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(acc))));
+  return `
+    <div class="bg-zinc-900 border border-zinc-700/80 rounded-2xl p-5 flex flex-col justify-between relative shadow-xl hover:border-zinc-600 transition-all" id="account-card-${acc._id}">
+      <div>
+        <div class="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
+          <div class="flex items-center gap-3">
+            <img src="${acc.logoUrl}" alt="${acc.bankName}" class="w-10 h-10 object-contain rounded-xl bg-zinc-800 p-1 border border-zinc-700" />
+            <div>
+              <h3 class="text-white font-bold text-base">${acc.bankName}</h3>
+              <span class="text-[10px] text-zinc-500 uppercase tracking-widest font-mono">${acc.bankCode}</span>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${acc.isActive ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}">
+            ${acc.isActive ? 'Active' : 'Disabled'}
+          </span>
+        </div>
+
+        <div class="space-y-2 mb-4 text-xs">
+          <div>
+            <p class="text-zinc-500 text-[11px]">Account Title:</p>
+            <p class="text-white font-bold text-sm">${acc.accountTitle}</p>
+          </div>
+          <div>
+            <p class="text-zinc-500 text-[11px]">Account Number / IBAN:</p>
+            <p class="text-amber-400 font-mono font-bold text-sm tracking-wide">${acc.accountNumber}</p>
+          </div>
+          ${acc.instructions ? `
+          <div class="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 text-zinc-400 text-[11px]">
+            <p class="text-zinc-500 text-[10px] uppercase font-semibold mb-0.5">Instructions to Customer:</p>
+            <p class="line-clamp-2">${acc.instructions}</p>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-zinc-800 flex gap-2">
+        <button onclick="openEditAccountModal('${b64}')" class="flex-1 py-2 bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/30 font-bold rounded-xl text-xs transition-colors">
+          Edit
+        </button>
+        <button onclick="deleteAccount('${acc._id}', '${acc.bankName}')" class="flex-1 py-2 bg-red-600/15 hover:bg-red-600/25 text-red-400 border border-red-500/30 font-bold rounded-xl text-xs transition-colors">
+          Delete
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function upsertAccountCard(acc) {
+  const existing = document.getElementById('account-card-' + acc._id);
+  const grid = document.getElementById('accounts-grid');
+  if (existing) {
+    existing.outerHTML = buildAccountCardHtml(acc);
+  } else {
+    // Remove empty notice if present
+    const emptyNotice = grid.querySelector('.col-span-full');
+    if (emptyNotice) emptyNotice.remove();
+    grid.insertAdjacentHTML('afterbegin', buildAccountCardHtml(acc));
+  }
+}
+</script>
+
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script>
+try {
+  const pusher = new Pusher('<%= pusherKey %>', { cluster: '<%= pusherCluster %>' });
+  const channel = pusher.subscribe('mhq-reseller');
+
+  channel.bind('payment-account:new', (acc) => {
+    if (acc) upsertAccountCard(acc);
+  });
+
+  channel.bind('payment-account:updated', (acc) => {
+    if (acc) upsertAccountCard(acc);
+  });
+
+  channel.bind('payment-account:deleted', (data) => {
+    if (data && data.id) {
+      const card = document.getElementById('account-card-' + data.id);
+      if (card) card.remove();
+    }
+  });
+} catch(e) {}
+</script>
 </script>

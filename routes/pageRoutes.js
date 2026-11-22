@@ -240,7 +240,7 @@ router.get('/admin/dashboard', protect, async (req, res) => {
       Order.countDocuments(),
       Order.countDocuments({ status: 'Pending' }),
       Order.countDocuments({ paymentStatus: 'Under Review' }),
-      Order.find({ status: 'Delivered' }).lean()
+      Order.find({ status: 'Delivered' }).select('totalAmount').lean()
     ]);
     const deliveredOrders = deliveredOrdersList.length;
     const totalRevenue = deliveredOrdersList.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
@@ -265,7 +265,8 @@ router.get('/admin/dashboard/pending-payments', protect, async (req, res) => {
   const Order = require('../models/Order');
   const orders = await Order.find({ paymentStatus: 'Under Review' })
     .populate('products.product', 'name images price hasDiscount discountedPrice')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
   res.render('admin/pending-payments', {
     layout: 'layouts/admin',
     orders,
@@ -276,8 +277,12 @@ router.get('/admin/dashboard/pending-payments', protect, async (req, res) => {
 
 router.get('/admin/dashboard/payment-accounts', protect, async (req, res) => {
   const PaymentAccount = require('../models/PaymentAccount');
-  const { PRESET_BANKS } = require('../controllers/paymentAccountController');
-  const accounts = await PaymentAccount.find().sort({ createdAt: -1 });
+  const { PRESET_BANKS, getBankLogo } = require('../controllers/paymentAccountController');
+  const rawAccounts = await PaymentAccount.find().sort({ createdAt: -1 }).lean();
+  const accounts = rawAccounts.map(a => ({
+    ...a,
+    logoUrl: getBankLogo(a.bankCode)
+  }));
   res.render('admin/payment-accounts', {
     layout: 'layouts/admin',
     accounts,
@@ -308,15 +313,17 @@ router.get('/admin/dashboard/settings', protect, async (req, res) => {
 });
 
 router.get('/admin/dashboard/products', protect, async (req, res) => {
-  const products = await Product.find().populate('category','name').sort({createdAt:-1});
-  const categories = await Category.find();
+  const [products, categories] = await Promise.all([
+    Product.find().populate('category','name').sort({createdAt:-1}).lean(),
+    Category.find().lean()
+  ]);
   res.render('admin/products', { layout: 'layouts/admin', products, categories,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Products - MHQ Admin' });
 });
 
 router.get('/admin/dashboard/categories', protect, async (req, res) => {
-  const categories = await Category.find().sort({createdAt:-1});
+  const categories = await Category.find().sort({createdAt:-1}).lean();
   res.render('admin/categories', { layout: 'layouts/admin', categories,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Categories - MHQ Admin' });
@@ -327,7 +334,8 @@ router.get('/admin/dashboard/orders', protect, async (req, res) => {
   // Regular orders list (exclude orders waiting for payment review)
   const orders = await Order.find({ paymentStatus: { $ne: 'Under Review' } })
     .populate('products.product','name images price hasDiscount discountedPrice')
-    .sort({createdAt:-1});
+    .sort({createdAt:-1})
+    .lean();
   res.render('admin/orders', { layout: 'layouts/admin', orders,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Orders - MHQ Admin' });
@@ -336,8 +344,10 @@ router.get('/admin/dashboard/orders', protect, async (req, res) => {
 router.get('/admin/dashboard/courier-tracking', protect, async (req, res) => {
   const Order = require('../models/Order');
   const CourierTracking = require('../models/CourierTracking');
-  const orders = await Order.find({ orderId: { $exists: true, $ne: '' } }).select('orderId customerDetails.fullName totalAmount status').sort({ createdAt: -1 });
-  const trackings = await CourierTracking.find().populate('order', 'orderId customerDetails.fullName').sort({ createdAt: -1 });
+  const [orders, trackings] = await Promise.all([
+    Order.find({ orderId: { $exists: true, $ne: '' } }).select('orderId customerDetails.fullName totalAmount status').sort({ createdAt: -1 }).lean(),
+    CourierTracking.find().populate('order', 'orderId customerDetails.fullName').sort({ createdAt: -1 }).lean()
+  ]);
   res.render('admin/courier-tracking', { layout: 'layouts/admin', orders, trackings,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Courier Tracking - MHQ Admin' });
@@ -345,7 +355,7 @@ router.get('/admin/dashboard/courier-tracking', protect, async (req, res) => {
 
 router.get('/admin/dashboard/users', protect, async (req, res) => {
   const User = require('../models/User');
-  const users = await User.find().select('-password').sort({createdAt:-1});
+  const users = await User.find().select('-password').sort({createdAt:-1}).lean();
   res.render('admin/users', { layout: 'layouts/admin', users,
     pusherKey: PUSHER_KEY, pusherCluster: PUSHER_CLUSTER,
     user: req.user, title: 'Users - MHQ Admin' });
