@@ -70,12 +70,32 @@ const create = async (req, res) => {
       paymentMethod = 'COD',
       paymentProofImage = '',
       bankSelected = '',
-      companyDiscount = 0
+      companyDiscount = 0,
+      isAdminCreated = false,
+      status: requestedStatus
     } = req.body;
 
-    if (!customerDetails || !customerDetails.fullName || !customerDetails.phoneNo) {
-      return res.status(400).json({ success: false, message: 'Customer details are required' });
+    const isAdmin = Boolean(isAdminCreated);
+
+    let finalCustDetails = customerDetails || {};
+    if (isAdmin) {
+      finalCustDetails = {
+        fullName: (finalCustDetails.fullName && finalCustDetails.fullName.trim()) || 'Walk-in Customer',
+        phoneNo: (finalCustDetails.phoneNo && finalCustDetails.phoneNo.trim()) || 'N/A',
+        houseNo: (finalCustDetails.houseNo && finalCustDetails.houseNo.trim()) || '',
+        streetNameNo: (finalCustDetails.streetNameNo && finalCustDetails.streetNameNo.trim()) || '',
+        areaName: (finalCustDetails.areaName && finalCustDetails.areaName.trim()) || 'Admin Order',
+        city: (finalCustDetails.city && finalCustDetails.city.trim()) || 'Store Counter',
+        province: (finalCustDetails.province && finalCustDetails.province.trim()) || 'Sindh',
+        famousPlace: (finalCustDetails.famousPlace && finalCustDetails.famousPlace.trim()) || '',
+        email: (finalCustDetails.email && finalCustDetails.email.trim()) || ''
+      };
+    } else {
+      if (!customerDetails || !customerDetails.fullName || !customerDetails.phoneNo) {
+        return res.status(400).json({ success: false, message: 'Customer details (Full Name & Phone Number) are required' });
+      }
     }
+
     if (!Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ success: false, message: 'Products are required' });
     }
@@ -146,11 +166,16 @@ const create = async (req, res) => {
       initialStatus = 'Pending Payment';
     }
 
+    // Admin can choose custom status when creating order directly
+    if (isAdmin && requestedStatus && typeof requestedStatus === 'string') {
+      initialStatus = requestedStatus;
+    }
+
     const orderId = await generateOrderId();
 
     const order = await Order.create({
       orderId,
-      customerDetails,
+      customerDetails: finalCustDetails,
       products: formattedProducts,
       paymentMethod,
       paymentStatus: initialPaymentStatus,
@@ -167,20 +192,20 @@ const create = async (req, res) => {
 
     const populatedOrder = await Order.findById(order._id).populate('products.product', 'name images price hasDiscount discountedPrice closeCOD');
 
-    // Send Brevo email notification
-    if (process.env.BREVO_API_KEY && (process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL)) {
-      try {
-        console.log('[Email] Sending Brevo order notification for order:', order.orderId);
-        await sendOrderEmail(populatedOrder);
-        console.log('[Email] Brevo notification sent successfully!');
-      } catch (emailErr) {
-        console.error('[Email Error] Brevo notification failed:', emailErr && emailErr.response ? emailErr.response.body || emailErr.response.text : emailErr.message);
-      }
+    // Send Brevo email notification only for storefront customer orders (NOT for admin-created orders)
+    if (!isAdmin && process.env.BREVO_API_KEY && (process.env.ADMIN_EMAIL || process.env.BREVO_SENDER_EMAIL)) {
+      sendOrderEmail(populatedOrder).catch(emailErr => {
+        console.error('[Email Error] Brevo notification failed:', emailErr && emailErr.message);
+      });
     }
 
     const pusher = req.app.get('pusher');
     if (pusher) {
-      await pusher.trigger('mhq-reseller', 'order:new', populatedOrder);
+      try {
+        pusher.trigger('mhq-reseller', 'order:new', populatedOrder).catch(e => console.warn('Pusher trigger failed:', e && e.message));
+      } catch (pe) {
+        console.warn('Pusher synchronous trigger error:', pe.message);
+      }
     }
 
     res.status(201).json({ success: true, order: populatedOrder });
@@ -334,6 +359,10 @@ async function sendOrderEmail(order) {
           reject(new Error(`Brevo HTTP ${res.statusCode}: ${body}`));
         }
       });
+    });
+
+    req.setTimeout(5000, () => {
+      req.destroy(new Error('Brevo email request timed out after 5s'));
     });
 
     req.on('error', (e) => reject(e));

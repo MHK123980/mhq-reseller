@@ -27,73 +27,82 @@
       const isPSA = payMethod === 'Pay Some Advance';
       const isAdv = payMethod === 'Advance Payment';
     %>
-    <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-5 flex flex-col relative" id="order-card-<%= o._id %>">
-      <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <input type="checkbox" class="order-select-cb w-4 h-4 rounded border-zinc-500 bg-zinc-800 accent-amber-500 cursor-pointer" value="<%= o._id %>" onchange="updateBulkDeleteOrdersBtn()" />
-      </div>
+    <div class="bg-zinc-900 border border-zinc-700/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative" id="order-card-<%= o._id %>">
       
-      <div class="flex items-start justify-between mb-3 border-b border-zinc-800 pb-3 mt-2">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md inline-block font-bold"><%= o.orderId || ('#' + o._id.toString().slice(-6)) %></span>
-            <!-- Payment Method Badge -->
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
-              <%= isAdv ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : isPSA ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-blue-500/15 border-blue-500/30 text-blue-400' %>">
-              <%= payMethod === 'COD' ? 'COD (6%)' : payMethod === 'Pay Some Advance' ? 'PSA (4%)' : 'Advance (2%)' %>
-            </span>
-          </div>
-          <p class="text-[11px] text-zinc-500"><%= new Date(o.createdAt).toLocaleDateString('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
-        </div>
-
-        <select onchange="updateOrderStatus('<%= o._id %>', this.value)" class="bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-amber-500 font-semibold
-          <%= o.status === 'Pending' || o.status === 'Pending Payment' ? 'text-amber-400' : '' %>
-          <%= o.status === 'Delivered' ? 'text-green-400' : '' %>
-          <%= o.status === 'Canceled' || o.status === 'Payment Declined' ? 'text-red-400' : '' %>">
-          <option value="Pending" <%= o.status==='Pending'?'selected':'' %>>Pending</option>
-          <option value="Pending Payment" <%= o.status==='Pending Payment'?'selected':'' %>>Pending Payment</option>
-          <option value="Packed" <%= o.status==='Packed'?'selected':'' %>>Packed</option>
-          <option value="Ready to Ship" <%= o.status==='Ready to Ship'?'selected':'' %>>Ready to Ship</option>
-          <option value="On Route" <%= o.status==='On Route'?'selected':'' %>>On Route</option>
-          <option value="Out for Delivery" <%= o.status==='Out for Delivery'?'selected':'' %>>Out for Delivery</option>
-          <option value="Delivered" <%= o.status==='Delivered'?'selected':'' %>>Delivered</option>
-          <option value="Canceled" <%= o.status==='Canceled'?'selected':'' %>>Canceled</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <p class="text-xs text-zinc-500 mb-0.5">Customer</p>
-        <p class="text-sm text-white font-bold"><%= o.customerDetails ? o.customerDetails.fullName : 'Customer' %></p>
-        <p class="text-xs text-zinc-400 font-mono"><%= o.customerDetails ? o.customerDetails.phoneNo : '-' %></p>
-      </div>
-
-      <div class="mb-4 flex-1">
-        <p class="text-xs text-zinc-500 mb-1.5 font-medium">Items (<%= o.products.length %>)</p>
-        <div class="space-y-1.5">
-          <% o.products.slice(0,2).forEach(p => { 
-            const hasCompDisc = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0 && p.companyDiscountedPrice < p.priceAtPurchase);
-          %>
-          <div class="flex justify-between items-center text-xs bg-zinc-800/40 p-1.5 rounded-lg">
-            <span class="text-zinc-300 truncate pr-2">
-              <%= p.quantity %>x <%= p.product ? p.product.name : 'Product' %>
-              <%= p.selectedVariant ? ` (${p.selectedVariant})` : '' %>
-            </span>
-            <div class="text-right flex-shrink-0">
-              <% if (hasCompDisc) { %>
-                <span class="text-zinc-500 text-[10px] line-through mr-1">Rs <%= p.priceAtPurchase * p.quantity %></span>
-                <span class="text-amber-400 font-bold">Rs <%= p.companyDiscountedPrice * p.quantity %></span>
-              <% } else { %>
-                <span class="text-zinc-300 font-medium">Rs <%= p.priceAtPurchase * p.quantity %></span>
-              <% } %>
+      <!-- Card Header: Cleanly aligned with checkbox and status -->
+      <div>
+        <div class="flex items-start justify-between gap-3 mb-3 border-b border-zinc-800 pb-3">
+          <div class="flex items-start gap-2.5 min-w-0">
+            <input type="checkbox" class="order-select-cb w-4 h-4 mt-1 rounded border-zinc-600 bg-zinc-800 accent-amber-500 cursor-pointer flex-shrink-0" value="<%= o._id %>" onchange="updateBulkDeleteOrdersBtn()" />
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md font-bold inline-block">
+                  <%= o.orderId || ('#' + o._id.toString().slice(-6)) %>
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
+                  <%= isAdv ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : isPSA ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-blue-500/15 border-blue-500/30 text-blue-400' %>">
+                  <%= payMethod === 'COD' ? 'COD (6%)' : payMethod === 'Pay Some Advance' ? 'PSA (4%)' : 'Advance (2%)' %>
+                </span>
+              </div>
+              <p class="text-[11px] text-zinc-500 mt-1"><%= new Date(o.createdAt).toLocaleString('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
             </div>
           </div>
-          <% }) %>
-          <% if(o.products.length > 2) { %>
-            <p class="text-xs text-zinc-500 italic">+ <%= o.products.length - 2 %> more items</p>
-          <% } %>
+
+          <select onchange="updateOrderStatus('<%= o._id %>', this.value)" class="flex-shrink-0 bg-zinc-800 border border-zinc-700 text-white text-xs rounded-xl px-2.5 py-1.5 outline-none focus:border-amber-500 font-semibold
+            <%= o.status === 'Pending' || o.status === 'Pending Payment' ? 'text-amber-400' : '' %>
+            <%= o.status === 'Delivered' ? 'text-green-400' : '' %>
+            <%= o.status === 'Canceled' || o.status === 'Payment Declined' ? 'text-red-400' : '' %>">
+            <option value="Pending" <%= o.status==='Pending'?'selected':'' %>>Pending</option>
+            <option value="Pending Payment" <%= o.status==='Pending Payment'?'selected':'' %>>Pending Payment</option>
+            <option value="Packed" <%= o.status==='Packed'?'selected':'' %>>Packed</option>
+            <option value="Ready to Ship" <%= o.status==='Ready to Ship'?'selected':'' %>>Ready to Ship</option>
+            <option value="On Route" <%= o.status==='On Route'?'selected':'' %>>On Route</option>
+            <option value="Out for Delivery" <%= o.status==='Out for Delivery'?'selected':'' %>>Out for Delivery</option>
+            <option value="Delivered" <%= o.status==='Delivered'?'selected':'' %>>Delivered</option>
+            <option value="Canceled" <%= o.status==='Canceled'?'selected':'' %>>Canceled</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <p class="text-xs text-zinc-500 mb-0.5">Customer</p>
+          <p class="text-sm text-white font-bold"><%= o.customerDetails ? o.customerDetails.fullName : 'Customer' %></p>
+          <p class="text-xs text-zinc-400 font-mono"><%= o.customerDetails ? o.customerDetails.phoneNo : '-' %></p>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-xs text-zinc-500 mb-1.5 font-medium">Items (<%= o.products.length %>)</p>
+          <div class="space-y-1.5">
+            <% o.products.slice(0,2).forEach(p => { 
+              const origP = p.originalBasePrice || p.priceAtPurchase;
+              const hasDisc = origP > p.priceAtPurchase;
+              const hasCompDisc = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0 && p.companyDiscountedPrice < p.priceAtPurchase);
+            %>
+            <div class="flex justify-between items-center text-xs bg-zinc-800/40 p-2 rounded-xl border border-zinc-800">
+              <span class="text-zinc-300 truncate pr-2">
+                <%= p.quantity %>x <%= p.product ? p.product.name : 'Product' %>
+                <%= p.selectedVariant ? ` (${p.selectedVariant})` : '' %>
+              </span>
+              <div class="text-right flex-shrink-0">
+                <% if (hasCompDisc) { %>
+                  <span class="text-zinc-500 text-[10px] line-through mr-1">Rs <%= p.priceAtPurchase * p.quantity %></span>
+                  <span class="text-amber-400 font-bold">Rs <%= p.companyDiscountedPrice * p.quantity %></span>
+                <% } else if (hasDisc) { %>
+                  <span class="text-zinc-500 text-[10px] line-through mr-1">Rs <%= origP * p.quantity %></span>
+                  <span class="text-amber-400 font-bold">Rs <%= p.priceAtPurchase * p.quantity %></span>
+                <% } else { %>
+                  <span class="text-zinc-300 font-medium">Rs <%= p.priceAtPurchase * p.quantity %></span>
+                <% } %>
+              </div>
+            </div>
+            <% }) %>
+            <% if(o.products.length > 2) { %>
+              <p class="text-xs text-zinc-500 italic">+ <%= o.products.length - 2 %> more items</p>
+            <% } %>
+          </div>
         </div>
       </div>
 
-      <div class="mt-auto border-t border-zinc-800 pt-3">
+      <div class="pt-3 border-t border-zinc-800">
         <div class="flex items-center justify-between mb-3">
           <div>
             <p class="text-xs text-zinc-500">Total Amount</p>
@@ -130,8 +139,9 @@
       </div>
     </div>
     <% }) %>
+
     <% if(orders.length === 0) { %>
-    <div class="col-span-full text-center py-20 text-zinc-500">No orders found.</div>
+    <div class="col-span-full text-center py-20 text-zinc-500 bg-zinc-900/40 rounded-3xl border border-zinc-800">No orders found.</div>
     <% } %>
   </div>
 </div>
@@ -176,7 +186,7 @@
       <div class="border-t border-zinc-800 pt-3">
         <label class="block text-xs font-semibold text-zinc-300 mb-1">Overall Order Discount (Rs)</label>
         <p class="text-[11px] text-zinc-500 mb-1.5">Applied in addition to product discounts (e.g. 100 for Rs 100 flat off)</p>
-        <input type="number" id="discount-overall-input" min="0" class="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none" placeholder="0" oninput="recalcDiscountPreview()" />
+        <input type="number" id="discount-overall-input" min="0" placeholder="0" value="" class="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none" oninput="recalcDiscountPreview()" />
       </div>
 
       <div class="bg-zinc-950 p-3.5 rounded-xl border border-zinc-800 space-y-1.5 text-xs">
@@ -206,13 +216,13 @@
   </div>
 </div>
 
-<!-- Add Order Modal -->
+<!-- Add Order Modal (Customer details OPTIONAL, Order status dropdown, No default 0s) -->
 <div id="add-order-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md">
   <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-5 sm:p-7 w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl">
     <div class="flex justify-between items-center mb-6 border-b border-zinc-800 pb-3">
       <div>
         <h2 class="text-xl sm:text-2xl font-bold text-white">Create New Order (Admin)</h2>
-        <p class="text-xs text-zinc-400">Enter customer details & select products with active discounts</p>
+        <p class="text-xs text-zinc-400">Customer details are optional for admin orders • No email sent for admin orders</p>
       </div>
       <button onclick="closeAddOrderModal()" class="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -222,41 +232,44 @@
     <form id="add-order-form" onsubmit="submitAddOrder(event)">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- Customer Details -->
+        <!-- Customer Details (Optional) -->
         <div>
-          <h3 class="text-amber-400 font-bold mb-3 border-b border-zinc-800 pb-2 text-sm uppercase tracking-wider">Customer Details</h3>
+          <h3 class="text-amber-400 font-bold mb-3 border-b border-zinc-800 pb-2 text-sm uppercase tracking-wider flex items-center justify-between">
+            <span>Customer Details</span>
+            <span class="text-[11px] text-zinc-500 font-normal lowercase">(optional)</span>
+          </h3>
           <div class="space-y-3">
             <div>
-              <label class="block text-xs text-zinc-400 mb-1">Full Name *</label>
-              <input type="text" id="ao-name" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="Customer full name" />
+              <label class="block text-xs text-zinc-400 mb-1">Full Name (Optional)</label>
+              <input type="text" id="ao-name" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="Walk-in Customer / Name" />
             </div>
             <div>
-              <label class="block text-xs text-zinc-400 mb-1">Phone No *</label>
-              <input type="tel" id="ao-phone" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="03XXXXXXXXX" />
+              <label class="block text-xs text-zinc-400 mb-1">Phone No (Optional)</label>
+              <input type="tel" id="ao-phone" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="03XXXXXXXXX" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-zinc-400 mb-1">House No *</label>
-                <input type="text" id="ao-house" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" />
+                <label class="block text-xs text-zinc-400 mb-1">House No (Optional)</label>
+                <input type="text" id="ao-house" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="House #" />
               </div>
               <div>
-                <label class="block text-xs text-zinc-400 mb-1">Street *</label>
-                <input type="text" id="ao-street" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" />
+                <label class="block text-xs text-zinc-400 mb-1">Street (Optional)</label>
+                <input type="text" id="ao-street" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="Street" />
               </div>
             </div>
             <div>
-              <label class="block text-xs text-zinc-400 mb-1">Area Name *</label>
-              <input type="text" id="ao-area" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" />
+              <label class="block text-xs text-zinc-400 mb-1">Area Name (Optional)</label>
+              <input type="text" id="ao-area" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="Area / Town" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-zinc-400 mb-1">City *</label>
-                <input type="text" id="ao-city" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" />
+                <label class="block text-xs text-zinc-400 mb-1">City (Optional)</label>
+                <input type="text" id="ao-city" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="City" />
               </div>
               <div>
-                <label class="block text-xs text-zinc-400 mb-1">Province *</label>
-                <select id="ao-province" required class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none">
-                  <option value="">Select</option>
+                <label class="block text-xs text-zinc-400 mb-1">Province (Optional)</label>
+                <select id="ao-province" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none">
+                  <option value="">Select (Optional)</option>
                   <option>Sindh</option><option>Punjab</option><option>KPK</option>
                   <option>Balochistan</option><option>Islamabad</option>
                   <option>AJK</option><option>Gilgit-Baltistan</option>
@@ -264,16 +277,29 @@
               </div>
             </div>
             <div>
-              <label class="block text-xs text-zinc-400 mb-1">Famous Place / Landmark</label>
-              <input type="text" id="ao-landmark" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="Optional" />
+              <label class="block text-xs text-zinc-400 mb-1">Famous Place / Landmark (Optional)</label>
+              <input type="text" id="ao-landmark" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" placeholder="Landmark" />
             </div>
-            <div>
-              <label class="block text-xs text-zinc-400 mb-1">Payment Method</label>
-              <select id="ao-payment-method" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" onchange="renderOrderProducts()">
-                <option value="COD">Cash on Delivery (6% Tax)</option>
-                <option value="Pay Some Advance">Pay Some Advance (4% Tax)</option>
-                <option value="Advance Payment">Advance Payment (2% Tax)</option>
-              </select>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-zinc-400 mb-1">Payment Method</label>
+                <select id="ao-payment-method" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none" onchange="renderOrderProducts()">
+                  <option value="COD">Cash on Delivery (6% Tax)</option>
+                  <option value="Pay Some Advance">Pay Some Advance (4% Tax)</option>
+                  <option value="Advance Payment">Advance Payment (2% Tax)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-zinc-400 mb-1">Initial Status (Optional)</label>
+                <select id="ao-order-status" class="w-full bg-zinc-900 border border-zinc-700 text-white rounded-xl px-3.5 py-2.5 text-sm focus:border-amber-500 outline-none">
+                  <option value="Pending">Pending (Default)</option>
+                  <option value="Packed">Packed</option>
+                  <option value="Ready to Ship">Ready to Ship</option>
+                  <option value="On Route">On Route</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered">Delivered</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -293,11 +319,11 @@
             <p class="text-zinc-500 text-xs text-center py-6">No products added yet.</p>
           </div>
 
-          <!-- Overall Order Discount in Add Order -->
+          <!-- Overall Order Discount in Add Order (No default 0!) -->
           <div class="p-3 bg-zinc-900/60 border border-zinc-800 rounded-xl mb-3 space-y-2">
             <div class="flex items-center justify-between">
               <label class="text-xs text-zinc-300 font-medium">Overall Order Discount (Rs)</label>
-              <input type="number" id="ao-overall-discount" min="0" value="0" class="w-28 bg-zinc-800 border border-zinc-700 text-white text-right rounded-lg px-2.5 py-1 text-xs outline-none focus:border-amber-500 font-bold" oninput="renderOrderProducts()" />
+              <input type="number" id="ao-overall-discount" min="0" placeholder="0" value="" class="w-28 bg-zinc-800 border border-zinc-700 text-white text-right rounded-lg px-2.5 py-1 text-xs outline-none focus:border-amber-500 font-bold" oninput="renderOrderProducts()" />
             </div>
           </div>
 
@@ -330,11 +356,15 @@ let currentDiscountOrder = null;
 
 async function updateOrderStatus(id, status) {
   try {
-    await fetch(`/api/orders/${id}/status`, {
+    const res = await fetch(`/api/orders/${id}/status`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
+    if (res.ok) {
+      // Instantly refresh admin sidebar badges
+      if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
+    }
   } catch(e) { alert('Failed to update status'); }
 }
 
@@ -352,6 +382,8 @@ function viewOrderDetails(b64Data) {
 
     const prodImg = (p.product && p.product.images && p.product.images.length) ? p.product.images[0] : '';
     const hasCompDisc = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0 && p.companyDiscountedPrice < p.priceAtPurchase);
+    const origP = p.originalBasePrice || p.priceAtPurchase;
+    const hasBaseDisc = origP > p.priceAtPurchase;
 
     return `
       <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-zinc-800/80 p-3 rounded-xl gap-4 border border-zinc-700/60">
@@ -360,7 +392,10 @@ function viewOrderDetails(b64Data) {
           <div class="flex-1 min-w-0">
             <p class="text-sm font-bold text-white truncate">${p.product ? p.product.name : 'Product'}</p>
             ${p.selectedVariant ? `<p class="text-xs text-amber-500 font-medium">${p.selectedVariant}</p>` : ''}
-            <p class="text-xs text-zinc-400">Qty: ${p.quantity} × Rs ${unitPrice}</p>
+            <div class="flex items-center gap-2 mt-0.5 text-xs text-zinc-400">
+              ${hasBaseDisc ? `<span class="line-through text-zinc-500">Rs ${origP}</span>` : ''}
+              <span>Qty: ${p.quantity} × Rs ${unitPrice}</span>
+            </div>
             ${hasCompDisc ? `<span class="inline-block mt-0.5 text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-1.5 py-0.5 rounded">Discounted by Company (was Rs ${p.priceAtPurchase})</span>` : ''}
             ${p.isFreeDelivery ? `<p class="text-[10px] text-emerald-400 font-medium">Free Delivery</p>` : (dc > 0 ? `<p class="text-[10px] text-zinc-500 font-medium">Delivery: Rs ${dc}</p>` : '')}
           </div>
@@ -376,17 +411,17 @@ function viewOrderDetails(b64Data) {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-zinc-800 pb-5">
       <div>
         <h3 class="text-amber-500 font-bold mb-2 text-xs uppercase tracking-wider">Customer Info</h3>
-        <p class="text-sm mb-1"><span class="text-zinc-500">Name:</span> <span class="text-white font-medium">${o.customerDetails.fullName}</span></p>
-        <p class="text-sm mb-1"><span class="text-zinc-500">Phone:</span> <span class="text-white font-mono">${o.customerDetails.phoneNo}</span></p>
-        <p class="text-sm mb-1"><span class="text-zinc-500">Email:</span> <span class="text-white">${o.customerDetails.email || '-'}</span></p>
+        <p class="text-sm mb-1"><span class="text-zinc-500">Name:</span> <span class="text-white font-medium">${o.customerDetails ? o.customerDetails.fullName : '-'}</span></p>
+        <p class="text-sm mb-1"><span class="text-zinc-500">Phone:</span> <span class="text-white font-mono">${o.customerDetails ? o.customerDetails.phoneNo : '-'}</span></p>
+        <p class="text-sm mb-1"><span class="text-zinc-500">Email:</span> <span class="text-white">${o.customerDetails ? o.customerDetails.email || '-' : '-'}</span></p>
         <p class="text-sm"><span class="text-zinc-500">Payment:</span> <span class="text-amber-400 font-bold">${o.paymentMethod || 'COD'} (${o.paymentStatus || 'Pending'})</span></p>
       </div>
       <div>
         <h3 class="text-amber-500 font-bold mb-2 text-xs uppercase tracking-wider">Delivery Address</h3>
-        <p class="text-sm mb-1 text-white">${o.customerDetails.houseNo}, ${o.customerDetails.streetNameNo}</p>
-        <p class="text-sm mb-1 text-white">${o.customerDetails.areaName}</p>
-        <p class="text-sm mb-1 text-white">${o.customerDetails.city}, ${o.customerDetails.province}</p>
-        ${o.customerDetails.famousPlace ? `<p class="text-sm text-zinc-400">Landmark: ${o.customerDetails.famousPlace}</p>` : ''}
+        <p class="text-sm mb-1 text-white">${o.customerDetails ? `${o.customerDetails.houseNo || ''}, ${o.customerDetails.streetNameNo || ''}` : '-'}</p>
+        <p class="text-sm mb-1 text-white">${o.customerDetails ? o.customerDetails.areaName || '' : '-'}</p>
+        <p class="text-sm mb-1 text-white">${o.customerDetails ? `${o.customerDetails.city || ''}, ${o.customerDetails.province || ''}` : '-'}</p>
+        ${o.customerDetails && o.customerDetails.famousPlace ? `<p class="text-sm text-zinc-400">Landmark: ${o.customerDetails.famousPlace}</p>` : ''}
       </div>
     </div>
     
@@ -422,14 +457,13 @@ function openDiscountModal(b64Data) {
 
   document.getElementById('discount-order-id').value = o._id;
   document.getElementById('discount-modal-order-id').textContent = `Order: ${o.orderId || ('#' + o._id.slice(-6))}`;
-  document.getElementById('discount-overall-input').value = o.companyDiscount || 0;
+  document.getElementById('discount-overall-input').value = o.companyDiscount > 0 ? o.companyDiscount : '';
 
   const list = document.getElementById('discount-products-list');
-  list.innerHTML = (o.products || []).map((p, idx) => {
+  list.innerHTML = (o.products || []).map(p => {
     const prodId = p.product ? (p.product._id || p.product) : p._id;
     const name = p.product ? p.product.name : 'Product';
     const img = (p.product && p.product.images && p.product.images.length) ? p.product.images[0] : '';
-    const currentPrice = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0) ? p.companyDiscountedPrice : p.priceAtPurchase;
 
     return `
       <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
@@ -521,7 +555,6 @@ async function submitDiscount(e) {
     const data = await res.json();
     if (res.ok && data.order) {
       closeDiscountModal();
-      // Update order card in DOM
       const card = document.getElementById('order-card-' + orderId);
       if (card) {
         card.outerHTML = createOrderCardHtml(data.order);
@@ -541,6 +574,7 @@ async function submitDiscount(e) {
 async function openAddOrderModal() {
   document.getElementById('add-order-modal').classList.remove('hidden');
   document.getElementById('add-order-form').reset();
+  document.getElementById('ao-overall-discount').value = '';
   selectedOrderProducts = [];
   renderOrderProducts();
   
@@ -715,6 +749,7 @@ async function submitAddOrder(e) {
 
   const overallDiscount = parseFloat(document.getElementById('ao-overall-discount').value) || 0;
   const payMethod = document.getElementById('ao-payment-method').value;
+  const chosenStatus = document.getElementById('ao-order-status').value || 'Pending';
 
   const productsPayload = selectedOrderProducts.map(p => ({
     product: p.product,
@@ -729,19 +764,21 @@ async function submitAddOrder(e) {
 
   const payload = {
     customerDetails: {
-      fullName: document.getElementById('ao-name').value,
-      phoneNo: document.getElementById('ao-phone').value,
-      houseNo: document.getElementById('ao-house').value,
-      streetNameNo: document.getElementById('ao-street').value,
-      areaName: document.getElementById('ao-area').value,
-      city: document.getElementById('ao-city').value,
-      province: document.getElementById('ao-province').value,
-      famousPlace: document.getElementById('ao-landmark').value,
+      fullName: document.getElementById('ao-name').value.trim() || 'Walk-in Customer',
+      phoneNo: document.getElementById('ao-phone').value.trim() || 'N/A',
+      houseNo: document.getElementById('ao-house').value.trim() || '',
+      streetNameNo: document.getElementById('ao-street').value.trim() || '',
+      areaName: document.getElementById('ao-area').value.trim() || '',
+      city: document.getElementById('ao-city').value.trim() || '',
+      province: document.getElementById('ao-province').value || '',
+      famousPlace: document.getElementById('ao-landmark').value.trim() || '',
       email: ""
     },
     products: productsPayload,
     paymentMethod: payMethod,
-    companyDiscount: overallDiscount
+    companyDiscount: overallDiscount,
+    status: chosenStatus,
+    isAdminCreated: true // Prevents email notification
   };
 
   try {
@@ -754,6 +791,7 @@ async function submitAddOrder(e) {
       const data = await res.json();
       closeAddOrderModal();
       if (data.order) prependOrderCard(data.order);
+      if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
     } else {
       const data = await res.json();
       alert(data.message || 'Error creating order');
@@ -773,6 +811,7 @@ async function deleteOrder(id) {
     if(res.ok) {
       const card = document.getElementById('order-card-' + id);
       if(card) card.remove();
+      if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
     } else {
       alert("Error deleting order");
     }
@@ -821,6 +860,7 @@ async function bulkDeleteOrders() {
       });
       document.getElementById('select-all-orders').checked = false;
       updateBulkDeleteOrdersBtn();
+      if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
     } else {
       const data = await res.json();
       alert(data.message || 'Error deleting orders');
@@ -840,9 +880,12 @@ function createOrderCardHtml(o) {
   const isAdv = payMethod === 'Advance Payment';
 
   let productsHtml = o.products.slice(0,2).map(p => {
+    const origP = p.originalBasePrice || p.priceAtPurchase;
+    const hasDisc = origP > p.priceAtPurchase;
     const hasCompDisc = (p.companyDiscountedPrice && p.companyDiscountedPrice > 0 && p.companyDiscountedPrice < p.priceAtPurchase);
+
     return `
-      <div class="flex justify-between items-center text-xs bg-zinc-800/40 p-1.5 rounded-lg">
+      <div class="flex justify-between items-center text-xs bg-zinc-800/40 p-2 rounded-xl border border-zinc-800">
         <span class="text-zinc-300 truncate pr-2">
           ${p.quantity}x ${p.product ? p.product.name : 'Product'}
           ${p.selectedVariant ? ` (${p.selectedVariant})` : ''}
@@ -851,6 +894,9 @@ function createOrderCardHtml(o) {
           ${hasCompDisc ? `
             <span class="text-zinc-500 text-[10px] line-through mr-1">Rs ${p.priceAtPurchase * p.quantity}</span>
             <span class="text-amber-400 font-bold">Rs ${p.companyDiscountedPrice * p.quantity}</span>
+          ` : hasDisc ? `
+            <span class="text-zinc-500 text-[10px] line-through mr-1">Rs ${origP * p.quantity}</span>
+            <span class="text-amber-400 font-bold">Rs ${p.priceAtPurchase * p.quantity}</span>
           ` : `
             <span class="text-zinc-300 font-medium">Rs ${p.priceAtPurchase * p.quantity}</span>
           `}
@@ -868,42 +914,46 @@ function createOrderCardHtml(o) {
   if (o.status === 'Canceled' || o.status === 'Payment Declined') statusColor = 'text-red-400';
   
   return `
-    <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-5 flex flex-col relative" id="order-card-${o._id}">
-      <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <input type="checkbox" class="order-select-cb w-4 h-4 rounded border-zinc-500 bg-zinc-800 accent-amber-500 cursor-pointer" value="${o._id}" onchange="updateBulkDeleteOrdersBtn()" />
-      </div>
-      <div class="flex items-start justify-between mb-3 border-b border-zinc-800 pb-3 mt-2">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs font-mono text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md inline-block font-bold">${o.orderId || ('#' + o._id.toString().slice(-6))}</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
-              ${isAdv ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : isPSA ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-blue-500/15 border-blue-500/30 text-blue-400'}">
-              ${payMethod === 'COD' ? 'COD (6%)' : payMethod === 'Pay Some Advance' ? 'PSA (4%)' : 'Advance (2%)'}
-            </span>
+    <div class="bg-zinc-900 border border-zinc-700/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative" id="order-card-${o._id}">
+      <div>
+        <div class="flex items-start justify-between gap-3 mb-3 border-b border-zinc-800 pb-3">
+          <div class="flex items-start gap-2.5 min-w-0">
+            <input type="checkbox" class="order-select-cb w-4 h-4 mt-1 rounded border-zinc-600 bg-zinc-800 accent-amber-500 cursor-pointer flex-shrink-0" value="${o._id}" onchange="updateBulkDeleteOrdersBtn()" />
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md font-bold inline-block">
+                  ${o.orderId || ('#' + o._id.toString().slice(-6))}
+                </span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border
+                  ${isAdv ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400' : isPSA ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-blue-500/15 border-blue-500/30 text-blue-400'}">
+                  ${payMethod === 'COD' ? 'COD (6%)' : payMethod === 'Pay Some Advance' ? 'PSA (4%)' : 'Advance (2%)'}
+                </span>
+              </div>
+              <p class="text-[11px] text-zinc-500 mt-1">${new Date(o.createdAt).toLocaleString('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
           </div>
-          <p class="text-[11px] text-zinc-500">${new Date(o.createdAt).toLocaleDateString('en-PK', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          <select onchange="updateOrderStatus('${o._id}', this.value)" class="flex-shrink-0 bg-zinc-800 border border-zinc-700 text-white text-xs rounded-xl px-2.5 py-1.5 outline-none focus:border-amber-500 font-semibold ${statusColor}">
+            ${['Pending','Pending Payment','Packed','Ready to Ship','On Route','Out for Delivery','Delivered','Canceled'].map(s => 
+              `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`
+            ).join('')}
+          </select>
         </div>
-        <select onchange="updateOrderStatus('${o._id}', this.value)" class="bg-zinc-800 border border-zinc-700 text-white text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-amber-500 font-semibold ${statusColor}">
-          ${['Pending','Pending Payment','Packed','Ready to Ship','On Route','Out for Delivery','Delivered','Canceled'].map(s => 
-            `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`
-          ).join('')}
-        </select>
-      </div>
 
-      <div class="mb-3">
-        <p class="text-xs text-zinc-500 mb-0.5">Customer</p>
-        <p class="text-sm text-white font-bold">${o.customerDetails ? o.customerDetails.fullName : 'Customer'}</p>
-        <p class="text-xs text-zinc-400 font-mono">${o.customerDetails ? o.customerDetails.phoneNo : '-'}</p>
-      </div>
+        <div class="mb-3">
+          <p class="text-xs text-zinc-500 mb-0.5">Customer</p>
+          <p class="text-sm text-white font-bold">${o.customerDetails ? o.customerDetails.fullName : 'Customer'}</p>
+          <p class="text-xs text-zinc-400 font-mono">${o.customerDetails ? o.customerDetails.phoneNo : '-'}</p>
+        </div>
 
-      <div class="mb-4 flex-1">
-        <p class="text-xs text-zinc-500 mb-1.5 font-medium">Items (${o.products.length})</p>
-        <div class="space-y-1.5">
-          ${productsHtml}
+        <div class="mb-4">
+          <p class="text-xs text-zinc-500 mb-1.5 font-medium">Items (${o.products.length})</p>
+          <div class="space-y-1.5">
+            ${productsHtml}
+          </div>
         </div>
       </div>
 
-      <div class="mt-auto border-t border-zinc-800 pt-3">
+      <div class="pt-3 border-t border-zinc-800">
         <div class="flex items-center justify-between mb-3">
           <div>
             <p class="text-xs text-zinc-500">Total Amount</p>
@@ -956,42 +1006,26 @@ function printSlip(b64Data) {
   const displayOrderId = o.orderId || ('#' + o._id.toString().slice(-6));
   const payMethod = o.paymentMethod || 'COD';
   
+  let subtotal = 0;
+  let totalDelivery = 0;
   let itemsHtml = '';
+
   (o.products || []).forEach(p => {
     const name = p.product ? p.product.name : 'Unknown Product';
-    const variant = p.selectedVariant ? `<div style="font-size: 9.5px; color: #555;">[${p.selectedVariant}]</div>` : '';
+    const variant = p.selectedVariant ? `<div style="font-size: 9px; color: #555;">[${p.selectedVariant}]</div>` : '';
     
-    // Price hierarchy logic per requirement:
-    // Original price: strikethrough, lighter, smaller
-    // Website discounted price: strikethrough if company discount exists, else bold
-    // Company discounted price: bold, prominent
-    const baseP = p.originalBasePrice || p.priceAtPurchase;
-    const webP = p.websiteDiscountedPrice || p.priceAtPurchase;
-    const compP = p.companyDiscountedPrice || 0;
-    const hasComp = (compP > 0 && compP < p.priceAtPurchase);
-    const hasWeb = (baseP > webP);
+    // Product discount logic per requirement:
+    // If product was discounted (e.g. was 200, discounted to 150):
+    // Original price: smaller, lighter, with strikethrough
+    // Discounted price: directly underneath
+    const origBase = p.originalBasePrice || p.priceAtPurchase;
+    const effectivePrice = p.priceAtPurchase;
+    const hasProductDisc = (origBase > effectivePrice);
+    const lineTotal = effectivePrice * p.quantity;
+    subtotal += lineTotal;
 
-    let priceDisplayHtml = '';
-    let effectiveItemTotal = 0;
-
-    if (hasComp) {
-      effectiveItemTotal = compP * p.quantity;
-      priceDisplayHtml = `
-        <div style="font-size: 8.5px; color: #777; text-decoration: line-through;">Rs ${Number(baseP).toLocaleString()}</div>
-        ${hasWeb ? `<div style="font-size: 8.5px; color: #777; text-decoration: line-through;">Rs ${Number(webP).toLocaleString()}</div>` : ''}
-        <div style="font-size: 11px; font-weight: bold;">Rs ${Number(compP).toLocaleString()}</div>
-      `;
-    } else if (hasWeb) {
-      effectiveItemTotal = webP * p.quantity;
-      priceDisplayHtml = `
-        <div style="font-size: 8.5px; color: #777; text-decoration: line-through;">Rs ${Number(baseP).toLocaleString()}</div>
-        <div style="font-size: 11px; font-weight: bold;">Rs ${Number(webP).toLocaleString()}</div>
-      `;
-    } else {
-      effectiveItemTotal = p.priceAtPurchase * p.quantity;
-      priceDisplayHtml = `
-        <div style="font-size: 11px; font-weight: bold;">Rs ${Number(p.priceAtPurchase).toLocaleString()}</div>
-      `;
+    if (!p.isFreeDelivery && p.deliveryCharges > 0) {
+      totalDelivery += p.deliveryCharges;
     }
 
     itemsHtml += `
@@ -1002,12 +1036,19 @@ function printSlip(b64Data) {
           <div style="font-size: 9.5px; color: #444; margin-top: 1px;">Qty: ${p.quantity}</div>
         </td>
         <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: right; vertical-align: top;">
-          ${priceDisplayHtml}
-          <div style="font-size: 10px; font-weight: bold; margin-top: 2px;">= Rs ${effectiveItemTotal.toLocaleString()}</div>
+          ${hasProductDisc ? `<div style="font-size: 8.5px; color: #777; text-decoration: line-through;">Rs ${Number(origBase).toLocaleString()}</div>` : ''}
+          <div style="font-size: 11px; font-weight: bold;">Rs ${Number(effectivePrice).toLocaleString()}</div>
+          <div style="font-size: 9.5px; font-weight: bold; margin-top: 1px;">= Rs ${lineTotal.toLocaleString()}</div>
         </td>
       </tr>
     `;
   });
+
+  // Calculate base total before company discount
+  const salesTaxAmt = Number(o.salesTax || 0);
+  const companyDiscAmt = Number(o.companyDiscount || 0);
+  const totalDueAmount = Number(o.totalAmount || 0);
+  const originalOrderTotal = companyDiscAmt > 0 ? (totalDueAmount + companyDiscAmt) : totalDueAmount;
 
   const html = `
     <!DOCTYPE html>
@@ -1059,11 +1100,14 @@ function printSlip(b64Data) {
         <div class="divider"></div>
 
         <div class="bold" style="font-size: 10px; text-transform: uppercase; margin-bottom: 2px;">CUSTOMER DETAILS</div>
-        <div class="bold" style="font-size: 11.5px;">${o.customerDetails.fullName}</div>
-        <div style="font-size: 11px;">Ph: <strong>${o.customerDetails.phoneNo}</strong></div>
+        <div class="bold" style="font-size: 11.5px;">${o.customerDetails ? o.customerDetails.fullName : 'Walk-in Customer'}</div>
+        <div style="font-size: 11px;">Ph: <strong>${o.customerDetails ? o.customerDetails.phoneNo : '-'}</strong></div>
         <div style="font-size: 10px; margin-top: 2px; line-height: 1.25;">
-          H #${o.customerDetails.houseNo}, ${o.customerDetails.streetNameNo}, ${o.customerDetails.areaName}, ${o.customerDetails.city}
-          ${o.customerDetails.famousPlace ? `<br>Landmark: ${o.customerDetails.famousPlace}` : ''}
+          ${o.customerDetails && o.customerDetails.houseNo ? `H #${o.customerDetails.houseNo}, ` : ''}
+          ${o.customerDetails && o.customerDetails.streetNameNo ? `${o.customerDetails.streetNameNo}, ` : ''}
+          ${o.customerDetails && o.customerDetails.areaName ? `${o.customerDetails.areaName}, ` : ''}
+          ${o.customerDetails && o.customerDetails.city ? o.customerDetails.city : ''}
+          ${o.customerDetails && o.customerDetails.famousPlace ? `<br>Landmark: ${o.customerDetails.famousPlace}` : ''}
         </div>
 
         ${o.courierCompany || o.courierTrackingNo ? `
@@ -1088,23 +1132,34 @@ function printSlip(b64Data) {
 
         <div class="double-divider"></div>
 
+        <!-- Totals Sequence per user requirement -->
         <div style="font-size: 10.5px; line-height: 1.4;">
-          ${o.salesTax ? `
-            <div class="info-row">
-              <span>Sales Tax:</span>
-              <span>Rs ${Number(o.salesTax).toLocaleString()}</span>
-            </div>
-          ` : ''}
-          ${o.companyDiscount > 0 ? `
-            <div class="info-row" style="font-weight: bold;">
-              <span>Company Discount:</span>
-              <span>- Rs ${Number(o.companyDiscount).toLocaleString()}</span>
-            </div>
-          ` : ''}
-          <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 900; margin-top: 3px; border-top: 1px solid #000; padding-top: 3px;">
-            <span>TOTAL AMOUNT:</span>
-            <span>Rs ${Number(o.totalAmount).toLocaleString()}</span>
+          <div class="info-row">
+            <span>Items Subtotal:</span>
+            <span>Rs ${subtotal.toLocaleString()}</span>
           </div>
+
+          <div class="info-row">
+            <span>Delivery Charges:</span>
+            <span>${totalDelivery === 0 ? 'Free' : 'Rs ' + totalDelivery.toLocaleString()}</span>
+          </div>
+
+          <div class="info-row">
+            <span>Sales Tax:</span>
+            <span>Rs ${salesTaxAmt.toLocaleString()}</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: bold; margin-top: 3px; border-top: 1px solid #000; padding-top: 2px;">
+            <span>TOTAL AMOUNT:</span>
+            <span>Rs ${originalOrderTotal.toLocaleString()}</span>
+          </div>
+
+          ${companyDiscAmt > 0 ? `
+            <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 900; margin-top: 2px; color: #000;">
+              <span>DISCOUNTED PRICE:</span>
+              <span>Rs ${totalDueAmount.toLocaleString()}</span>
+            </div>
+          ` : ''}
 
           ${payMethod === 'Pay Some Advance' ? `
             <div class="info-row" style="margin-top: 3px; color: #111;">
@@ -1113,12 +1168,12 @@ function printSlip(b64Data) {
             </div>
             <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 900; color: #000; border-top: 1px dashed #000; padding-top: 3px; margin-top: 2px;">
               <span>BALANCE DUE ON DELIVERY:</span>
-              <span>Rs ${Number(o.totalDueAmount !== undefined ? o.totalDueAmount : (o.totalAmount - (o.advanceAmount || 0))).toLocaleString()}</span>
+              <span>Rs ${Number(o.totalDueAmount !== undefined ? o.totalDueAmount : (totalDueAmount - (o.advanceAmount || 0))).toLocaleString()}</span>
             </div>
           ` : payMethod === 'Advance Payment' ? `
             <div class="info-row" style="margin-top: 3px; font-weight: bold;">
               <span>Full Advance Paid:</span>
-              <span>Rs ${Number(o.totalAmount).toLocaleString()}</span>
+              <span>Rs ${totalDueAmount.toLocaleString()}</span>
             </div>
             <div class="info-row" style="font-weight: bold;">
               <span>BALANCE DUE:</span>
@@ -1127,7 +1182,7 @@ function printSlip(b64Data) {
           ` : `
             <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 900; margin-top: 2px;">
               <span>DUE AT DOORSTEP:</span>
-              <span>Rs ${Number(o.totalAmount).toLocaleString()}</span>
+              <span>Rs ${totalDueAmount.toLocaleString()}</span>
             </div>
           `}
         </div>
@@ -1174,12 +1229,14 @@ try {
 
   channel.bind('order:new', (data) => {
     if (data) prependOrderCard(data);
+    if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
   });
 
   channel.bind('order:updated', (data) => {
     if (data && data._id) {
       const el = document.getElementById('order-card-' + data._id);
       if (el) el.outerHTML = createOrderCardHtml(data);
+      if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
     }
   });
 
@@ -1187,6 +1244,7 @@ try {
     if (data && data.id) {
       const el = document.getElementById('order-card-' + data.id);
       if (el) el.remove();
+      if (typeof refreshAdminBadges === 'function') refreshAdminBadges();
     }
   });
 } catch (e) {

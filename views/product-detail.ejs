@@ -142,6 +142,7 @@ function addToCart() {
   const id = '<%= product._id %>';
   let name = '<%= product.name.replace(/'/g, "\\'") %>';
   let price = <%= finalPrice %>;
+  let originalPrice = <%= product.price %>;
   const image = '<%= product.images && product.images.length ? product.images[0] : "" %>';
   const deliveryCharges = <%= product.deliveryCharges || 0 %>;
   const isFreeDelivery = <%= product.isFreeDelivery ? 'true' : 'false' %>;
@@ -152,7 +153,9 @@ function addToCart() {
   const variantSections = document.querySelectorAll('#variants-section input[type="radio"]:checked');
   variantSections.forEach(radio => {
     selectedVariant.push(`${radio.dataset.label}: ${radio.value}`);
-    price += parseFloat(radio.dataset.price) || 0;
+    const vPrice = parseFloat(radio.dataset.price) || 0;
+    price += vPrice;
+    originalPrice += vPrice;
   });
   const variantString = selectedVariant.join(' | ');
 
@@ -162,7 +165,7 @@ function addToCart() {
   if (existing) {
     existing.quantity += qty;
   } else {
-    cart.push({ id, name, price, image, quantity: qty, deliveryCharges, isFreeDelivery, selectedVariant: variantString, closeCOD });
+    cart.push({ id, name, price, originalPrice, image, quantity: qty, deliveryCharges, isFreeDelivery, selectedVariant: variantString, closeCOD });
   }
   localStorage.setItem('mhq_cart', JSON.stringify(cart));
   updateCartCount();

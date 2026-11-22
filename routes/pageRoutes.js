@@ -153,6 +153,37 @@ router.get('/cart', async (req, res) => {
   });
 });
 
+router.get('/checkout', async (req, res) => {
+  const PaymentAccount = require('../models/PaymentAccount');
+  const { PRESET_BANKS, getBankLogo } = require('../controllers/paymentAccountController');
+  let estimatedDeliveryTime = '3-5 Days';
+  let categories = [];
+  try {
+    categories = await Category.find().sort({ name: 1 }).lean();
+    const estTimeSetting = await Setting.findOne({ key: 'estimatedDeliveryTime' }).lean().maxTimeMS(1500);
+    if (estTimeSetting && estTimeSetting.value) estimatedDeliveryTime = estTimeSetting.value;
+  } catch (e) {}
+
+  let accounts = [];
+  try {
+    const rawAccounts = await PaymentAccount.find({ isActive: { $ne: false } }).sort({ createdAt: -1 }).lean();
+    accounts = rawAccounts.map(a => ({
+      ...a,
+      logoUrl: a.logoUrl && a.logoUrl.trim() !== '' ? a.logoUrl : getBankLogo(a.bankCode, a.logoUrl)
+    }));
+  } catch (err) {}
+
+  res.render('checkout', {
+    categories: categories || [],
+    accounts,
+    presetBanks: PRESET_BANKS,
+    estimatedDeliveryTime,
+    pusherKey: PUSHER_KEY,
+    pusherCluster: PUSHER_CLUSTER,
+    title: 'Checkout - MHQ Reseller (Broker)'
+  });
+});
+
 router.get('/track-order', async (req, res) => {
   const categories = await Category.find().sort({ name: 1 }).lean();
   res.render('track-order', {

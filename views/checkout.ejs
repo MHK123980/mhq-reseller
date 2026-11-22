@@ -1,0 +1,791 @@
+<section class="py-12 sm:py-20 px-3 sm:px-6 max-w-6xl mx-auto">
+  <!-- Back to Cart link -->
+  <div class="mb-6">
+    <a href="/cart" class="inline-flex items-center gap-2 text-zinc-400 hover:text-amber-400 text-xs sm:text-sm font-medium transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      <span>Back to Shopping Cart</span>
+    </a>
+  </div>
+
+  <div class="mb-8">
+    <h1 class="text-2xl sm:text-4xl font-black text-white font-serif leading-tight">
+      Secure <span class="text-amber-400">Checkout</span>
+    </h1>
+    <p class="text-zinc-400 text-xs sm:text-sm mt-1">Please provide delivery address and select your preferred payment method</p>
+  </div>
+
+  <div id="checkout-empty-notice" class="hidden text-center py-20 bg-zinc-900/40 rounded-3xl border border-zinc-800">
+    <svg class="w-16 h-16 text-zinc-700 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+    <p class="text-white font-bold text-lg mb-1">Your Cart is Empty</p>
+    <p class="text-zinc-500 text-xs mb-4">Please add products to your cart before proceeding to checkout.</p>
+    <a href="/products" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-6 py-2.5 rounded-full text-xs transition-colors inline-block">Browse Products</a>
+  </div>
+
+  <form id="checkout-page-form" onsubmit="handlePlaceOrder(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Column: Delivery Address & Payment Method (7 cols) -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- 1. Customer Delivery Details -->
+      <div class="bg-zinc-900 border border-zinc-700/80 rounded-3xl p-5 sm:p-7 shadow-xl">
+        <h2 class="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2.5">
+          <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center font-bold">1</span>
+          Delivery Address
+        </h2>
+
+        <div class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Full Name *</label>
+            <input type="text" id="cust-name" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Enter recipient full name" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">WhatsApp / Phone Number *</label>
+            <input type="tel" id="cust-phone" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors font-mono" placeholder="03XXXXXXXXX" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">House / Flat No. *</label>
+              <input type="text" id="cust-house" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="House / Flat #" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Street / Block / Sector *</label>
+              <input type="text" id="cust-street" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Street name / Sector" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Area / Town / Colony *</label>
+            <input type="text" id="cust-area" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Area / Town / Mohalla" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">City *</label>
+              <input type="text" id="cust-city" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="e.g. Karachi, Hyderabad, Lahore" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-300 mb-1">Province *</label>
+              <select id="cust-province" required class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors">
+                <option value="">Select Province</option>
+                <option>Sindh</option>
+                <option>Punjab</option>
+                <option>KPK</option>
+                <option>Balochistan</option>
+                <option>Islamabad Capital</option>
+                <option>Azad Kashmir (AJK)</option>
+                <option>Gilgit-Baltistan</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Nearest Famous Place / Landmark</label>
+            <input type="text" id="cust-landmark" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="Near Masjid, School, Hospital, Market (Optional)" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-zinc-300 mb-1">Email Address</label>
+            <input type="email" id="cust-email" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors" placeholder="For tracking confirmation (Optional)" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Select Payment Method (No default selection!) -->
+      <div class="bg-zinc-900 border border-zinc-700/80 rounded-3xl p-5 sm:p-7 shadow-xl">
+        <h2 class="text-base sm:text-lg font-bold text-white mb-2 flex items-center gap-2.5">
+          <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center font-bold">2</span>
+          Payment Method Selection *
+        </h2>
+        <p class="text-xs text-zinc-400 mb-4">Please select how you would like to pay for your order:</p>
+
+        <div class="space-y-3" id="payment-methods-list">
+          
+          <!-- Cash on Delivery (COD) -->
+          <label id="opt-cod-label" class="payment-method-card flex items-start gap-3.5 p-4 rounded-2xl border border-zinc-700 bg-zinc-950/70 hover:border-amber-500/60 cursor-pointer transition-all">
+            <input type="radio" name="paymentMethod" value="COD" onchange="selectPaymentMethod('COD')" class="mt-1 text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="text-white font-bold text-sm">Cash on Delivery (COD)</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300">6% Sales Tax</span>
+              </div>
+              <p class="text-zinc-400 text-xs mt-1 leading-relaxed">Pay 100% of order balance in cash to courier rider upon doorstep delivery.</p>
+            </div>
+          </label>
+
+          <!-- Close COD Notice -->
+          <div id="cod-blocked-notice" class="hidden p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2.5">
+            <svg class="w-5 h-5 flex-shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Cash on Delivery is closed for items currently in your cart. Advance payment (PSA or Full) is required.</span>
+          </div>
+
+          <!-- Pay Some Advance (PSA) -->
+          <label class="payment-method-card flex items-start gap-3.5 p-4 rounded-2xl border border-zinc-700 bg-zinc-950/70 hover:border-amber-500/60 cursor-pointer transition-all">
+            <input type="radio" name="paymentMethod" value="Pay Some Advance" onchange="selectPaymentMethod('Pay Some Advance')" class="mt-1 text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-white font-bold text-sm">Pay Some Advance (PSA)</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Save 2%</span>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400">4% Sales Tax</span>
+              </div>
+              <p class="text-zinc-400 text-xs mt-1 leading-relaxed" id="psa-summary-note">Pay small advance online via Bank/EasyPaisa/JazzCash, pay remainder on delivery.</p>
+            </div>
+          </label>
+
+          <!-- Full Advance Payment -->
+          <label class="payment-method-card flex items-start gap-3.5 p-4 rounded-2xl border border-zinc-700 bg-zinc-950/70 hover:border-amber-500/60 cursor-pointer transition-all">
+            <input type="radio" name="paymentMethod" value="Advance Payment" onchange="selectPaymentMethod('Advance Payment')" class="mt-1 text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-white font-bold text-sm">Full Advance Payment</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Lowest Tax</span>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">2% Tax Only</span>
+              </div>
+              <p class="text-zinc-400 text-xs mt-1 leading-relaxed">Pay full amount upfront online. Zero due at doorstep upon delivery.</p>
+            </div>
+          </label>
+        </div>
+
+        <p id="method-not-selected-alert" class="hidden mt-3 text-xs text-amber-400 font-medium flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          Please select a payment method above to proceed.
+        </p>
+      </div>
+
+      <!-- 3. Bank Transfer Details & Compulsory Proof Upload (Visible only for PSA or Full Advance) -->
+      <div id="bank-transfer-box" class="hidden bg-zinc-900 border border-amber-500/40 rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+          <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            Online Transfer & Receipt Upload
+          </h3>
+          <span id="advance-required-badge" class="text-xs font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-full"></span>
+        </div>
+
+        <!-- Bank selection cards -->
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-2">Select Account to Transfer To:</label>
+          <div id="bank-accounts-list" class="space-y-2.5">
+            <!-- Dynamically populated or rendered from server accounts -->
+            <% if (accounts && accounts.length > 0) { %>
+              <% accounts.forEach((acc, i) => { %>
+                <label class="flex items-center justify-between p-3 rounded-2xl border border-zinc-800 bg-zinc-950 hover:border-amber-500/50 cursor-pointer transition-all">
+                  <div class="flex items-center gap-3">
+                    <input type="radio" name="bankOption" value="<%= acc.bankCode %>" onchange="handleSelectBank('<%= acc.bankCode %>')" <%= i === 0 ? 'checked' : '' %> class="text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+                    <div class="flex items-center gap-2.5">
+                      <% if (acc.logoUrl) { %>
+                        <img src="<%= acc.logoUrl %>" alt="<%= acc.bankName %>" class="w-8 h-8 object-contain rounded-lg bg-white p-0.5 border border-zinc-700" />
+                      <% } else { %>
+                        <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-xs font-bold text-amber-400">BK</div>
+                      <% } %>
+                      <div>
+                        <p class="text-white text-xs font-bold"><%= acc.bankName %></p>
+                        <p class="text-zinc-400 text-[11px]"><%= acc.accountTitle %></p>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-amber-400 font-mono text-xs font-bold"><%= acc.accountNumber %></span>
+                </label>
+              <% }) %>
+            <% } else { %>
+              <p class="text-xs text-zinc-400">Loading accounts...</p>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Selected Bank Detailed Info Card -->
+        <div id="active-bank-details" class="p-4 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-zinc-400">Account Title:</span>
+            <span id="active-bank-title" class="text-white font-bold text-sm"></span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-zinc-400">Account / IBAN Number:</span>
+            <div class="flex items-center gap-2">
+              <span id="active-bank-number" class="text-amber-400 font-mono font-bold text-sm"></span>
+              <button type="button" onclick="copyActiveAccount()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2 py-0.5 rounded text-[11px] font-semibold transition-colors">Copy</button>
+            </div>
+          </div>
+          <div id="active-bank-instructions-row" class="hidden pt-1.5 border-t border-zinc-800 text-[11px] text-zinc-400">
+            <span id="active-bank-instructions"></span>
+          </div>
+        </div>
+
+        <!-- Compulsory Screenshot Upload with Image Preview -->
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1 flex items-center justify-between">
+            <span>Upload Payment Screenshot / Proof *</span>
+            <span class="text-amber-400 text-[11px] font-bold">(Mandatory)</span>
+          </label>
+          <p class="text-[11px] text-zinc-500 mb-2">Please upload a clear screenshot of your bank / EasyPaisa / JazzCash successful transfer receipt.</p>
+
+          <input type="file" id="proof-input" accept="image/*,.pdf" onchange="handleProofFile(event)" class="hidden" />
+
+          <!-- Upload Dropzone Box -->
+          <div id="proof-dropzone" onclick="document.getElementById('proof-input').click()"
+            class="border-2 border-dashed border-zinc-700 hover:border-amber-500 rounded-2xl p-5 text-center cursor-pointer transition-all bg-zinc-950/60 group">
+            
+            <div id="proof-idle-state" class="flex flex-col items-center justify-center gap-1.5">
+              <div class="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center text-zinc-400 group-hover:text-amber-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </div>
+              <p class="text-xs text-zinc-200 font-semibold">Click to select payment screenshot</p>
+              <p class="text-[10px] text-zinc-500">Supports JPG, PNG, WEBP, PDF</p>
+            </div>
+
+            <div id="proof-uploading-state" class="hidden flex-col items-center justify-center py-2">
+              <div class="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-1.5"></div>
+              <p class="text-xs text-amber-400 font-semibold">Uploading payment proof securely...</p>
+            </div>
+
+            <!-- Upload Success Preview with Image Thumbnail -->
+            <div id="proof-preview-state" class="hidden flex flex-col sm:flex-row items-center justify-between gap-3 bg-zinc-900 border border-emerald-500/40 p-3 rounded-xl text-left" onclick="event.stopPropagation()">
+              <div class="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                <img id="proof-preview-thumbnail" src="" alt="Proof Preview" class="w-14 h-14 object-cover rounded-lg bg-zinc-950 border border-zinc-700 flex-shrink-0" />
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Proof Attached Successfully</span>
+                  </div>
+                  <p id="proof-preview-filename" class="text-[11px] text-zinc-400 truncate max-w-[200px] mt-0.5 font-mono"></p>
+                </div>
+              </div>
+              <button type="button" onclick="removeProof()" class="text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-1.5 rounded-lg bg-red-950/40 border border-red-500/30 transition-colors flex-shrink-0">
+                Change Image
+              </button>
+            </div>
+          </div>
+
+          <input type="hidden" id="uploaded-proof-url" value="" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Dedicated Scrollable Products Review & Order Summary (5 cols) -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Dedicated Scrollable Ordered Products Box -->
+      <div class="bg-zinc-900 border border-zinc-700/80 rounded-3xl p-5 sm:p-6 shadow-xl">
+        <h2 class="text-base font-bold text-white mb-3 flex items-center justify-between">
+          <span>Order Items Review</span>
+          <span id="checkout-cart-count" class="text-xs font-mono text-amber-400 font-bold">0 items</span>
+        </h2>
+
+        <!-- Scrollable Container with explicit height -->
+        <div id="checkout-products-scroll" class="max-h-64 overflow-y-auto space-y-3 pr-1 divide-y divide-zinc-800/80">
+          <!-- Populated from localStorage -->
+        </div>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div class="bg-zinc-900 border border-zinc-700/80 rounded-3xl p-5 sm:p-6 shadow-xl sticky top-24 space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          Payment & Total Breakdown
+        </h3>
+
+        <!-- Financial Breakdown as requested by user -->
+        <div class="space-y-2 text-xs sm:text-sm">
+          <div class="flex justify-between text-zinc-400">
+            <span>Items Subtotal</span>
+            <span id="bk-subtotal" class="text-white font-semibold">Rs 0</span>
+          </div>
+
+          <div class="flex justify-between text-zinc-400 text-xs">
+            <span>Delivery Charges</span>
+            <span id="bk-delivery" class="text-zinc-300">Rs 0</span>
+          </div>
+
+          <div class="flex justify-between text-zinc-400 text-xs">
+            <span id="bk-tax-label">Sales Tax (Please select payment method)</span>
+            <span id="bk-tax" class="text-amber-400 font-semibold">-</span>
+          </div>
+
+          <div class="border-t border-zinc-800 pt-3 flex justify-between text-white font-bold text-base">
+            <span>Total Amount</span>
+            <span id="bk-total" class="text-amber-400 font-black text-xl">Rs 0</span>
+          </div>
+
+          <!-- PSA details -->
+          <div id="bk-psa-box" class="hidden pt-3 border-t border-dashed border-zinc-800 space-y-2 text-xs">
+            <div class="flex justify-between text-emerald-400 font-semibold">
+              <span>Advance Payable Now</span>
+              <span id="bk-psa-advance" class="font-bold">Rs 0</span>
+            </div>
+            <div class="flex justify-between text-white font-bold text-sm">
+              <span>Balance Due on Delivery</span>
+              <span id="bk-psa-due" class="text-amber-300">Rs 0</span>
+            </div>
+          </div>
+
+          <!-- Full Advance details -->
+          <div id="bk-adv-box" class="hidden pt-2 border-t border-dashed border-zinc-800 text-right">
+            <span class="text-xs text-emerald-400 font-bold">✓ 100% Advance Paid (Rs 0 due at delivery)</span>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-place-order" 
+          class="w-full bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-full transition-all text-sm shadow-xl shadow-amber-600/30 flex items-center justify-center gap-2">
+          <span>Place Order</span>
+        </button>
+
+        <p id="place-order-guide" class="text-[11px] text-center text-zinc-500">
+          Please select your payment method above to complete order.
+        </p>
+      </div>
+
+    </div>
+  </form>
+</section>
+
+<!-- Success Modal -->
+<div id="checkout-success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+  <div class="bg-zinc-950 border border-zinc-700 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl">
+    <div class="w-16 h-16 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-400">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    
+    <h2 id="success-headline" class="text-2xl font-bold text-white mb-2">Order Received!</h2>
+    <p id="success-subnote" class="text-zinc-300 text-xs sm:text-sm mb-4 leading-relaxed"></p>
+
+    <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 mb-4">
+      <p class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-1">Your Order ID</p>
+      <p id="success-order-id" class="text-amber-400 font-mono font-black text-2xl tracking-widest">-</p>
+      <p class="text-zinc-500 text-[11px] mt-1">Please save this Order ID to track dispatch live anytime!</p>
+    </div>
+
+    <div class="space-y-2">
+      <a id="success-track-btn" href="/track-order" class="block w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl transition-all text-sm shadow-lg shadow-amber-600/30">
+        Track Your Order Now →
+      </a>
+      <a href="/" class="block w-full border border-zinc-700 hover:border-zinc-500 text-zinc-300 font-medium py-2.5 rounded-xl transition-all text-xs">
+        Return to Home
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+let PRELOADED_ACCOUNTS = <%- JSON.stringify(accounts || []) %>;
+let selectedPaymentMethod = null; // BY DEFAULT NONE SELECTED
+let selectedBankCode = '';
+let cartItemsSubtotal = 0;
+let cartDeliveryTotal = 0;
+let cartHasCloseCOD = false;
+
+function calculatePSA(subtotal) {
+  if (subtotal < 200) return 100;
+  if (subtotal < 500) return 200;
+  if (subtotal < 1500) return 400;
+  if (subtotal < 3000) return 700;
+  return 850;
+}
+
+function loadCheckoutCart() {
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  const emptyEl = document.getElementById('checkout-empty-notice');
+  const formEl = document.getElementById('checkout-page-form');
+  const container = document.getElementById('checkout-products-scroll');
+  const countBadge = document.getElementById('checkout-cart-count');
+
+  if (!cart || cart.length === 0) {
+    emptyEl.classList.remove('hidden');
+    formEl.classList.add('hidden');
+    return;
+  }
+
+  emptyEl.classList.add('hidden');
+  formEl.classList.remove('hidden');
+
+  let subtotal = 0;
+  let delivery = 0;
+  cartHasCloseCOD = false;
+
+  container.innerHTML = cart.map(item => {
+    subtotal += item.price * item.quantity;
+    if (!item.isFreeDelivery && item.deliveryCharges > 0) {
+      delivery += item.deliveryCharges;
+    }
+    if (item.closeCOD === true) {
+      cartHasCloseCOD = true;
+    }
+
+    // Check if this item had a higher original price (product discount)
+    const originalPrice = item.originalPrice || item.price;
+    const hasDiscount = (originalPrice > item.price);
+
+    return `
+      <div class="flex items-center justify-between gap-3 pt-3 first:pt-0">
+        <div class="flex items-center gap-3 min-w-0">
+          ${item.image ? `<img src="${item.image}" alt="" class="w-12 h-12 rounded-xl object-cover bg-zinc-950 border border-zinc-700 flex-shrink-0" />` : '<div class="w-12 h-12 rounded-xl bg-zinc-950 border border-zinc-700 flex-shrink-0"></div>'}
+          <div class="min-w-0">
+            <p class="text-white font-medium text-xs sm:text-sm truncate">${item.name}</p>
+            ${item.selectedVariant ? `<p class="text-amber-500/90 text-[11px] font-medium truncate">${item.selectedVariant}</p>` : ''}
+            <div class="mt-0.5">
+              ${hasDiscount ? `
+                <div class="text-zinc-500 line-through text-[10px] leading-tight font-normal">Rs ${Number(originalPrice).toLocaleString()}</div>
+                <div class="text-amber-400 font-bold text-xs leading-tight">Rs ${Number(item.price).toLocaleString()} <span class="text-zinc-500 font-normal text-[11px]">× ${item.quantity}</span></div>
+              ` : `
+                <div class="text-amber-400 font-bold text-xs leading-tight">Rs ${Number(item.price).toLocaleString()} <span class="text-zinc-500 font-normal text-[11px]">× ${item.quantity}</span></div>
+              `}
+            </div>
+          </div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          ${hasDiscount ? `
+            <div class="text-zinc-500 line-through text-[10px] leading-tight">Rs ${(originalPrice * item.quantity).toLocaleString()}</div>
+            <div class="font-bold text-white text-xs sm:text-sm leading-tight">Rs ${(item.price * item.quantity).toLocaleString()}</div>
+          ` : `
+            <div class="font-bold text-white text-xs sm:text-sm">Rs ${(item.price * item.quantity).toLocaleString()}</div>
+          `}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  countBadge.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
+  cartItemsSubtotal = subtotal;
+  cartDeliveryTotal = delivery;
+
+  // Handle closeCOD restriction
+  const codOption = document.getElementById('opt-cod-label');
+  const codBlockedNotice = document.getElementById('cod-blocked-notice');
+  if (cartHasCloseCOD) {
+    codOption.classList.add('hidden');
+    codBlockedNotice.classList.remove('hidden');
+  } else {
+    codOption.classList.remove('hidden');
+    codBlockedNotice.classList.add('hidden');
+  }
+
+  // Update PSA note with actual advance required
+  const reqAdv = calculatePSA(cartItemsSubtotal);
+  document.getElementById('psa-summary-note').textContent = `Pay advance Rs ${reqAdv.toLocaleString()} online now, pay remaining balance on delivery.`;
+
+  recalculateBreakdown();
+}
+
+function selectPaymentMethod(method) {
+  selectedPaymentMethod = method;
+  document.getElementById('method-not-selected-alert').classList.add('hidden');
+
+  const bankBox = document.getElementById('bank-transfer-box');
+  const psaBox = document.getElementById('bk-psa-box');
+  const advBox = document.getElementById('bk-adv-box');
+
+  if (method === 'COD') {
+    bankBox.classList.add('hidden');
+    psaBox.classList.add('hidden');
+    advBox.classList.add('hidden');
+  } else if (method === 'Pay Some Advance') {
+    bankBox.classList.remove('hidden');
+    psaBox.classList.remove('hidden');
+    advBox.classList.add('hidden');
+    initBankSelection();
+  } else if (method === 'Advance Payment') {
+    bankBox.classList.remove('hidden');
+    psaBox.classList.add('hidden');
+    advBox.classList.remove('hidden');
+    initBankSelection();
+  }
+
+  recalculateBreakdown();
+}
+
+function recalculateBreakdown() {
+  const subtotalEl = document.getElementById('bk-subtotal');
+  const deliveryEl = document.getElementById('bk-delivery');
+  const taxLabel = document.getElementById('bk-tax-label');
+  const taxEl = document.getElementById('bk-tax');
+  const totalEl = document.getElementById('bk-total');
+  const guideEl = document.getElementById('place-order-guide');
+
+  subtotalEl.textContent = 'Rs ' + cartItemsSubtotal.toLocaleString();
+  deliveryEl.textContent = cartDeliveryTotal === 0 ? 'Free' : 'Rs ' + cartDeliveryTotal.toLocaleString();
+
+  if (!selectedPaymentMethod) {
+    taxLabel.textContent = 'Sales Tax (Select payment method)';
+    taxEl.textContent = '-';
+    totalEl.textContent = 'Rs ' + (cartItemsSubtotal + cartDeliveryTotal).toLocaleString();
+    guideEl.textContent = 'Please select your payment method to complete order.';
+    checkSubmitEligibility();
+    return;
+  }
+
+  let taxRate = 0.06;
+  if (selectedPaymentMethod === 'Pay Some Advance') taxRate = 0.04;
+  else if (selectedPaymentMethod === 'Advance Payment') taxRate = 0.02;
+
+  const rawSum = cartItemsSubtotal + cartDeliveryTotal;
+  const taxAmount = Math.round(rawSum * taxRate);
+  const grandTotal = rawSum + taxAmount;
+
+  taxLabel.textContent = `Sales Tax (${(taxRate * 100).toFixed(0)}%)`;
+  taxEl.textContent = 'Rs ' + taxAmount.toLocaleString();
+  totalEl.textContent = 'Rs ' + grandTotal.toLocaleString();
+
+  if (selectedPaymentMethod === 'Pay Some Advance') {
+    let reqAdv = calculatePSA(cartItemsSubtotal);
+    reqAdv = Math.min(reqAdv, grandTotal);
+    const balDue = Math.max(0, grandTotal - reqAdv);
+
+    document.getElementById('advance-required-badge').textContent = `Advance Required: Rs ${reqAdv.toLocaleString()}`;
+    document.getElementById('bk-psa-advance').textContent = `Rs ${reqAdv.toLocaleString()}`;
+    document.getElementById('bk-psa-due').textContent = `Rs ${balDue.toLocaleString()}`;
+    guideEl.textContent = `Pay Rs ${reqAdv.toLocaleString()} advance and attach screenshot to place order.`;
+  } else if (selectedPaymentMethod === 'Advance Payment') {
+    document.getElementById('advance-required-badge').textContent = `Full Advance: Rs ${grandTotal.toLocaleString()}`;
+    guideEl.textContent = `Pay Rs ${grandTotal.toLocaleString()} upfront and attach screenshot to place order.`;
+  } else {
+    guideEl.textContent = `Pay Rs ${grandTotal.toLocaleString()} in cash to rider upon delivery.`;
+  }
+
+  checkSubmitEligibility();
+}
+
+async function initBankSelection() {
+  if (!PRELOADED_ACCOUNTS || PRELOADED_ACCOUNTS.length === 0) {
+    try {
+      const res = await fetch('/api/payment-accounts?public=true');
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.accounts) && data.accounts.length > 0) {
+        PRELOADED_ACCOUNTS = data.accounts;
+        renderBankAccountsList();
+      }
+    } catch(e) {}
+  }
+
+  if (PRELOADED_ACCOUNTS && PRELOADED_ACCOUNTS.length > 0) {
+    if (!selectedBankCode) {
+      handleSelectBank(PRELOADED_ACCOUNTS[0].bankCode);
+    }
+  } else {
+    const listEl = document.getElementById('bank-accounts-list');
+    if (listEl) {
+      listEl.innerHTML = '<div class="p-3 bg-zinc-800/60 rounded-xl text-amber-400 text-xs font-medium">No active payment accounts found. Please contact support via WhatsApp.</div>';
+    }
+  }
+}
+
+function renderBankAccountsList() {
+  const container = document.getElementById('bank-accounts-list');
+  if (!container) return;
+  if (!PRELOADED_ACCOUNTS || PRELOADED_ACCOUNTS.length === 0) {
+    container.innerHTML = '<div class="p-3 bg-zinc-800/60 rounded-xl text-amber-400 text-xs font-medium">No active payment accounts found. Please contact support via WhatsApp.</div>';
+    return;
+  }
+  container.innerHTML = PRELOADED_ACCOUNTS.map((acc, i) => `
+    <label class="flex items-center justify-between p-3 rounded-2xl border border-zinc-800 bg-zinc-950 hover:border-amber-500/50 cursor-pointer transition-all">
+      <div class="flex items-center gap-3">
+        <input type="radio" name="bankOption" value="${acc.bankCode}" onchange="handleSelectBank('${acc.bankCode}')" ${i === 0 ? 'checked' : ''} class="text-amber-500 focus:ring-amber-500 w-4 h-4 bg-zinc-800" />
+        <div class="flex items-center gap-2.5">
+          ${acc.logoUrl ? `<img src="${acc.logoUrl}" alt="${acc.bankName}" class="w-8 h-8 object-contain rounded-lg bg-white p-0.5 border border-zinc-700" />` : '<div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-xs font-bold text-amber-400">BK</div>'}
+          <div>
+            <p class="text-white text-xs font-bold">${acc.bankName}</p>
+            <p class="text-zinc-400 text-[11px]">${acc.accountTitle}</p>
+          </div>
+        </div>
+      </div>
+      <span class="text-amber-400 font-mono text-xs font-bold">${acc.accountNumber}</span>
+    </label>
+  `).join('');
+}
+
+function handleSelectBank(bankCode) {
+  selectedBankCode = bankCode;
+  const acc = (PRELOADED_ACCOUNTS || []).find(a => a.bankCode.toLowerCase() === bankCode.toLowerCase());
+  if (!acc) return;
+
+  document.getElementById('active-bank-title').textContent = acc.accountTitle;
+  document.getElementById('active-bank-number').textContent = acc.accountNumber;
+
+  const instRow = document.getElementById('active-bank-instructions-row');
+  const instTxt = document.getElementById('active-bank-instructions');
+  if (acc.instructions && acc.instructions.trim()) {
+    instTxt.textContent = acc.instructions;
+    instRow.classList.remove('hidden');
+  } else {
+    instRow.classList.add('hidden');
+  }
+}
+
+function copyActiveAccount() {
+  const num = document.getElementById('active-bank-number').textContent;
+  if (!num) return;
+  navigator.clipboard.writeText(num).then(() => {
+    alert('Account / IBAN copied to clipboard: ' + num);
+  });
+}
+
+// Payment Screenshot Upload & Live Preview
+async function handleProofFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const idle = document.getElementById('proof-idle-state');
+  const uploading = document.getElementById('proof-uploading-state');
+  const preview = document.getElementById('proof-preview-state');
+
+  idle.classList.add('hidden');
+  uploading.classList.remove('hidden');
+  preview.classList.add('hidden');
+
+  try {
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const base64 = evt.target.result;
+
+      // Show local thumbnail preview immediately for responsiveness
+      document.getElementById('proof-preview-thumbnail').src = base64;
+      document.getElementById('proof-preview-filename').textContent = file.name;
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, fileName: file.name })
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        document.getElementById('uploaded-proof-url').value = data.url;
+        uploading.classList.add('hidden');
+        preview.classList.remove('hidden');
+        checkSubmitEligibility();
+      } else {
+        alert(data.message || 'Image upload failed. Please try again.');
+        idle.classList.remove('hidden');
+        uploading.classList.add('hidden');
+      }
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    alert('Network error while uploading screenshot');
+    idle.classList.remove('hidden');
+    uploading.classList.add('hidden');
+  }
+}
+
+function removeProof() {
+  document.getElementById('uploaded-proof-url').value = '';
+  document.getElementById('proof-input').value = '';
+  document.getElementById('proof-idle-state').classList.remove('hidden');
+  document.getElementById('proof-uploading-state').classList.add('hidden');
+  document.getElementById('proof-preview-state').classList.add('hidden');
+  checkSubmitEligibility();
+}
+
+function checkSubmitEligibility() {
+  const btn = document.getElementById('btn-place-order');
+  const proofUrl = document.getElementById('uploaded-proof-url').value;
+
+  if (!selectedPaymentMethod) {
+    btn.disabled = true;
+    return;
+  }
+
+  if (selectedPaymentMethod === 'COD') {
+    btn.disabled = false;
+  } else {
+    // For PSA and Full Advance, proof is compulsory!
+    btn.disabled = (!proofUrl || !proofUrl.trim());
+  }
+}
+
+async function handlePlaceOrder(e) {
+  e.preventDefault();
+
+  if (!selectedPaymentMethod) {
+    document.getElementById('method-not-selected-alert').classList.remove('hidden');
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+    return;
+  }
+
+  const btn = document.getElementById('btn-place-order');
+  const origText = btn.innerHTML;
+  btn.innerHTML = `
+    <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+    <span>Processing Order...</span>
+  `;
+  btn.disabled = true;
+
+  const cart = JSON.parse(localStorage.getItem('mhq_cart') || '[]');
+  const customerDetails = {
+    fullName: document.getElementById('cust-name').value.trim(),
+    phoneNo: document.getElementById('cust-phone').value.trim(),
+    houseNo: document.getElementById('cust-house').value.trim(),
+    streetNameNo: document.getElementById('cust-street').value.trim(),
+    areaName: document.getElementById('cust-area').value.trim(),
+    city: document.getElementById('cust-city').value.trim(),
+    province: document.getElementById('cust-province').value,
+    famousPlace: document.getElementById('cust-landmark').value.trim(),
+    email: document.getElementById('cust-email').value.trim()
+  };
+
+  const products = cart.map(i => ({
+    product: i.id,
+    quantity: i.quantity,
+    priceAtPurchase: i.price,
+    selectedVariant: i.selectedVariant || '',
+    deliveryCharges: i.deliveryCharges || 0,
+    isFreeDelivery: Boolean(i.isFreeDelivery)
+  }));
+
+  const paymentProofImage = document.getElementById('uploaded-proof-url').value;
+  const activeBankObj = (PRELOADED_ACCOUNTS || []).find(a => a.bankCode.toLowerCase() === selectedBankCode.toLowerCase());
+  const bankSelected = activeBankObj ? `${activeBankObj.bankName} - ${activeBankObj.accountNumber}` : selectedBankCode;
+
+  const payload = {
+    customerDetails,
+    products,
+    paymentMethod: selectedPaymentMethod,
+    paymentProofImage,
+    bankSelected
+  };
+
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success && data.order) {
+      localStorage.removeItem('mhq_cart');
+      updateCartCount();
+
+      const orderId = data.order.orderId || ('#' + data.order._id.slice(-6));
+      document.getElementById('success-order-id').textContent = orderId;
+      document.getElementById('success-track-btn').href = '/track-order?id=' + encodeURIComponent(orderId);
+
+      const headline = document.getElementById('success-headline');
+      const subnote = document.getElementById('success-subnote');
+
+      if (selectedPaymentMethod === 'COD') {
+        headline.textContent = 'Order Placed Successfully! 🎉';
+        subnote.textContent = "Your cash-on-delivery order has been received. Our dispatch team will verify and ship your parcel shortly.";
+      } else {
+        headline.textContent = 'Order Received!';
+        subnote.innerHTML = '<span class="text-amber-400 font-bold">Your payment is under review.</span> Once confirmed by accounts, your order will proceed to dispatch.';
+      }
+
+      document.getElementById('checkout-success-modal').classList.remove('hidden');
+    } else {
+      alert(data.message || 'Error creating order. Please verify your details.');
+      btn.innerHTML = origText;
+      checkSubmitEligibility();
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+    btn.innerHTML = origText;
+    checkSubmitEligibility();
+  }
+}
+
+// Initialize on page load
+loadCheckoutCart();
+</script>

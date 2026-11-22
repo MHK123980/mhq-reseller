@@ -116,13 +116,13 @@
           <a href="/admin/dashboard" class="admin-nav-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-amber-600/20 hover:text-amber-400 text-zinc-400">Dashboard</a>
           <a href="/admin/dashboard/orders" class="admin-nav-link flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-amber-600/20 hover:text-amber-400 text-zinc-400">
             <span>Orders</span>
-            <span class="bg-amber-500 text-black text-[11px] font-black px-2 py-0.5 rounded-full <%= (typeof pendingOrdersCount !== 'undefined' && pendingOrdersCount > 0) ? '' : 'hidden' %>">
+            <span id="mob-drawer-orders-badge" class="bg-amber-500 text-black text-[11px] font-black px-2 py-0.5 rounded-full <%= (typeof pendingOrdersCount !== 'undefined' && pendingOrdersCount > 0) ? '' : 'hidden' %>">
               <%= typeof pendingOrdersCount !== 'undefined' ? pendingOrdersCount : 0 %>
             </span>
           </a>
           <a href="/admin/dashboard/pending-payments" class="admin-nav-link flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all hover:bg-amber-600/20 hover:text-amber-400 text-zinc-400">
             <span>Pending Payments</span>
-            <span class="bg-emerald-500 text-black text-[11px] font-black px-2 py-0.5 rounded-full <%= (typeof pendingPaymentsCount !== 'undefined' && pendingPaymentsCount > 0) ? '' : 'hidden' %>">
+            <span id="mob-drawer-payments-badge" class="bg-emerald-500 text-black text-[11px] font-black px-2 py-0.5 rounded-full <%= (typeof pendingPaymentsCount !== 'undefined' && pendingPaymentsCount > 0) ? '' : 'hidden' %>">
               <%= typeof pendingPaymentsCount !== 'undefined' ? pendingPaymentsCount : 0 %>
             </span>
           </a>
@@ -194,6 +194,30 @@
           if (ppBadge) {
             ppBadge.textContent = pp;
             ppBadge.classList.toggle('hidden', pp <= 0);
+          }
+
+          // Mobile top bar badges
+          const mobPoBadge = document.getElementById('mob-pending-orders-badge');
+          if (mobPoBadge) {
+            mobPoBadge.textContent = po;
+            mobPoBadge.classList.toggle('hidden', po <= 0);
+          }
+          const mobPpBadge = document.getElementById('mob-pending-payments-badge');
+          if (mobPpBadge) {
+            mobPpBadge.textContent = pp;
+            mobPpBadge.classList.toggle('hidden', pp <= 0);
+          }
+
+          // Mobile drawer badges
+          const mobDrwOrders = document.getElementById('mob-drawer-orders-badge');
+          if (mobDrwOrders) {
+            mobDrwOrders.textContent = po;
+            mobDrwOrders.classList.toggle('hidden', po <= 0);
+          }
+          const mobDrwPayments = document.getElementById('mob-drawer-payments-badge');
+          if (mobDrwPayments) {
+            mobDrwPayments.textContent = pp;
+            mobDrwPayments.classList.toggle('hidden', pp <= 0);
           }
         }
       } catch (e) {}
