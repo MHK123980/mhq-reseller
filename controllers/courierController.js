@@ -52,8 +52,18 @@ const save = async (req, res) => {
 const getByOrderId = async (req, res) => {
   try {
     const { orderId } = req.params;
-    // Find order first
-    const order = await Order.findOne({ orderId }).populate('products.product', 'name images price');
+    const cleanId = (orderId || '').trim();
+    if (!cleanId) return res.status(400).json({ success: false, message: 'Order ID is required' });
+
+    // Find order (case-insensitive or by ObjectId)
+    const order = await Order.findOne({
+      $or: [
+        { orderId: cleanId },
+        { orderId: new RegExp(`^${cleanId}$`, 'i') },
+        { _id: cleanId.length === 24 ? cleanId : null }
+      ]
+    }).populate('products.product', 'name images price hasDiscount discountedPrice closeCOD');
+
     if (!order) return res.status(404).json({ success: false, message: 'Order not found. Please check your Order ID.' });
     
     const tracking = await CourierTracking.findOne({ order: order._id });
@@ -61,10 +71,21 @@ const getByOrderId = async (req, res) => {
     res.json({
       success: true,
       order: {
+        _id: order._id,
         orderId: order.orderId,
         status: order.status,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        paymentProofImage: order.paymentProofImage,
+        bankSelected: order.bankSelected,
+        salesTax: order.salesTax || 0,
+        companyDiscount: order.companyDiscount || 0,
+        originalTotalAmount: order.originalTotalAmount || (order.totalAmount + (order.companyDiscount || 0)),
         totalAmount: order.totalAmount,
-        customerName: order.customerDetails.fullName,
+        advanceAmount: order.advanceAmount || 0,
+        totalDueAmount: order.totalDueAmount !== undefined ? order.totalDueAmount : (order.totalAmount - (order.advanceAmount || 0)),
+        customerDetails: order.customerDetails,
+        customerName: order.customerDetails ? order.customerDetails.fullName : 'Customer',
         products: order.products,
         createdAt: order.createdAt,
       },

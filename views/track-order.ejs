@@ -296,20 +296,30 @@ function renderTrackingDetails(order, tracking) {
           ${productsHtml}
         </div>
         <div class="space-y-1.5 pt-3 border-t border-zinc-800 mt-2 text-xs">
-          <div class="flex justify-between items-center text-white font-bold text-sm">
-            <span>Total Amount</span>
-            <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${((order.originalTotalAmount || order.totalAmount) + (order.companyDiscount || 0)).toLocaleString()}</span>
-          </div>
-          ${order.companyDiscount > 0 ? `
-            <div class="flex justify-between text-amber-400 font-semibold pt-1 border-t border-dashed border-zinc-800">
-              <span>Discounted By Company:</span>
-              <span>- Rs ${order.companyDiscount.toLocaleString()}</span>
-            </div>
-            <div class="flex justify-between items-center text-emerald-400 font-black text-sm">
-              <span>Discounted Total Payable:</span>
-              <span>Rs ${order.totalAmount.toLocaleString()}</span>
-            </div>
-          ` : ''}
+          ${(() => {
+            const hasCompDisc = Boolean(order.companyDiscount && Number(order.companyDiscount) > 0);
+            const originalTotal = hasCompDisc ? (Number(order.totalAmount || 0) + Number(order.companyDiscount)) : Number(order.originalTotalAmount || order.totalAmount || 0);
+
+            if (hasCompDisc) {
+              return `
+                <div class="flex justify-between items-center text-white font-bold text-sm">
+                  <span>Total Amount <span class="text-[11px] text-zinc-400 font-normal">(Including Tax)</span></span>
+                  <span class="text-zinc-400 font-bold line-through text-sm sm:text-base">Rs ${originalTotal.toLocaleString()}</span>
+                </div>
+                <div class="flex justify-between items-center text-amber-400 font-bold text-sm pt-1 border-t border-dashed border-zinc-800">
+                  <span>Discounted Price By Company</span>
+                  <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${Number(order.totalAmount || 0).toLocaleString()}</span>
+                </div>
+              `;
+            } else {
+              return `
+                <div class="flex justify-between items-center text-white font-bold text-sm">
+                  <span>Total Amount <span class="text-[11px] text-zinc-400 font-normal">(Including Tax)</span></span>
+                  <span class="text-amber-400 font-black text-base sm:text-lg">Rs ${Number(order.totalAmount || 0).toLocaleString()}</span>
+                </div>
+              `;
+            }
+          })()}
           ${order.paymentMethod === 'Pay Some Advance' ? `
             <div class="flex justify-between text-emerald-400 text-xs font-semibold pt-1">
               <span>Advance Paid</span>
