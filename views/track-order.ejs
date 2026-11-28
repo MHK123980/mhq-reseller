@@ -37,6 +37,31 @@
   .status-step::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: -8px; width: 2px; background: #27272a; }
   .status-step:last-child::before { display: none; }
   .status-step.done::before { background: linear-gradient(to bottom, #d97706, #27272a); }
+
+  @keyframes radarShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(260%); }
+  }
+  .gateway-shimmer-bar {
+    position: relative;
+    overflow: hidden;
+    background: rgba(245, 158, 11, 0.14);
+  }
+  .gateway-shimmer-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, #d97706, #fbbf24, transparent);
+    animation: radarShimmer 1.35s ease-in-out infinite;
+  }
+  @keyframes floatParcel {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-3px); }
+  }
+  .parcel-float {
+    animation: floatParcel 2.2s ease-in-out infinite;
+  }
 </style>
 
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
@@ -82,6 +107,104 @@ function mapToThreeSteps(rawStatus) {
   return 'Pending';
 }
 
+function getGatewayLoaderHtml(compact = false) {
+  if (compact) {
+    return `
+      <div class="mt-3 pt-3 border-t border-zinc-800/80">
+        <div class="bg-zinc-950/80 border border-amber-500/20 rounded-xl p-3">
+          <div class="flex items-center gap-3">
+            <div class="relative flex items-center justify-center w-7 h-7 flex-shrink-0">
+              <span class="absolute inline-flex h-full w-full rounded-full bg-amber-400/40 animate-ping"></span>
+              <span class="relative inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 parcel-float">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+              </span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] font-mono font-semibold text-amber-300 tracking-wide">Connecting with Courier Gateway...</p>
+              <div class="w-full h-1 rounded-full gateway-shimmer-bar mt-1.5"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="bg-zinc-900/90 border border-amber-500/25 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center">
+      <div class="relative inline-flex items-center justify-center w-14 h-14 mb-4">
+        <span class="absolute inline-flex h-full w-full rounded-full bg-amber-400/30 animate-ping"></span>
+        <span class="absolute inline-flex h-11 w-11 rounded-full bg-amber-500/15 border border-amber-500/30"></span>
+        <span class="relative inline-flex items-center justify-center w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-400 parcel-float shadow-lg shadow-amber-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        </span>
+      </div>
+      <p class="text-xs sm:text-sm font-mono font-bold text-amber-300 tracking-wider">Connecting with Courier Gateway...</p>
+      <div class="max-w-xs mx-auto h-1 rounded-full gateway-shimmer-bar mt-3"></div>
+    </div>
+  `;
+}
+
+async function fetchLiveCourierUpdates(orderId) {
+  const container = document.getElementById('live-courier-updates');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`/api/courier/live/${encodeURIComponent(orderId)}`);
+    const data = await res.json();
+
+    if (data && data.available && Array.isArray(data.events) && data.events.length > 0) {
+      const eventsHtml = data.events.slice(0, 5).map((ev, idx) => `
+        <div class="flex items-start gap-2.5 text-xs py-1.5 ${idx > 0 ? 'border-t border-zinc-800/60' : ''}">
+          <span class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${idx === 0 ? 'bg-emerald-400 shadow-sm shadow-emerald-400/60 animate-pulse' : 'bg-zinc-600'}"></span>
+          <div class="flex-1 min-w-0">
+            <p class="${idx === 0 ? 'text-white font-semibold' : 'text-zinc-300'} leading-snug">${ev.status}</p>
+            <div class="flex flex-wrap items-center gap-x-2 text-[10px] text-zinc-500 mt-0.5">
+              ${ev.location ? `<span>📍 ${ev.location}</span>` : ''}
+              ${ev.timestamp ? `<span>🕒 ${ev.timestamp}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="mt-3 pt-3 border-t border-zinc-800/80">
+          <div class="bg-zinc-950/80 border border-emerald-500/25 rounded-xl p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                Live Courier Transit Updates
+              </span>
+              ${data.currentStatus ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">${data.currentStatus}</span>` : ''}
+            </div>
+            <div class="space-y-0.5">${eventsHtml}</div>
+          </div>
+        </div>
+      `;
+
+      // If auto-updated to Delivered, refresh order progress cleanly
+      if (data.autoUpdatedStatus === 'Delivered') {
+        const orderRes = await fetch(`/api/courier/${encodeURIComponent(orderId)}`);
+        const orderData = await orderRes.json();
+        if (orderData && orderData.success) {
+          // Re-render only if status changed, without re-triggering live loop
+          renderTrackingDetails(orderData.order, orderData.tracking, true);
+          // Re-inject the already fetched live feed
+          const newContainer = document.getElementById('live-courier-updates');
+          if (newContainer) newContainer.innerHTML = container.innerHTML;
+        }
+      }
+    } else {
+      container.innerHTML = `
+        <div class="mt-3 pt-2.5 border-t border-zinc-800/60 text-center">
+          <p class="text-[11px] text-zinc-500">Live hub scan pending — use the tracking portal button below for direct carrier lookup.</p>
+        </div>
+      `;
+    }
+  } catch (err) {
+    container.innerHTML = '';
+  }
+}
+
 async function trackOrder() {
   const orderId = document.getElementById('order-id-input').value.trim().toUpperCase();
   const result = document.getElementById('track-result');
@@ -90,7 +213,7 @@ async function trackOrder() {
     return;
   }
   currentTrackedOrderId = orderId;
-  result.innerHTML = '<div class="text-center py-10 flex flex-col items-center gap-3"><div class="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div><p class="text-zinc-500 text-xs sm:text-sm">Fetching order details…</p></div>';
+  result.innerHTML = getGatewayLoaderHtml(false);
   
   try {
     const res = await fetch(`/api/courier/${orderId}`);
@@ -110,7 +233,7 @@ async function trackOrder() {
   }
 }
 
-function renderTrackingDetails(order, tracking) {
+function renderTrackingDetails(order, tracking, skipLiveFetch = false) {
   const result = document.getElementById('track-result');
   const mappedStatus = mapToThreeSteps(order.status);
   const currentStatusIdx = statusOrder.indexOf(mappedStatus);
@@ -150,6 +273,7 @@ function renderTrackingDetails(order, tracking) {
           <p class="text-amber-400 font-bold text-sm font-mono tracking-wider">${tracking.trackingNumber}</p>
         </div>
       </div>
+      <div id="live-courier-updates">${!skipLiveFetch ? getGatewayLoaderHtml(true) : ''}</div>
       ${trackUrl ? `<a href="${trackUrl}" target="_blank" rel="noopener noreferrer" class="mt-3 btn-gold flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm w-full rounded-xl font-bold shadow-lg shadow-amber-500/20">
         <span>Open ${companyName} Tracking Portal</span>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
@@ -338,6 +462,10 @@ function renderTrackingDetails(order, tracking) {
         </div>
       </div>
     </div>`;
+
+  if (tracking && !skipLiveFetch) {
+    fetchLiveCourierUpdates(order.orderId);
+  }
 }
 
 // Auto track if ?id= parameter is present

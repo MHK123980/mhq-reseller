@@ -1,5 +1,6 @@
 const CourierTracking = require('../models/CourierTracking');
 const Order = require('../models/Order');
+const { fetchLiveCourierStatus } = require('../utils/courierScraper');
 
 const getAll = async (req, res) => {
   try {
@@ -100,6 +101,54 @@ const getByOrderId = async (req, res) => {
   }
 };
 
+const getLiveStatus = async (req, res) => {
+  try {
+    const cleanId = (req.params.orderId || '').trim();
+    if (!cleanId) return res.status(400).json({ success: false, message: 'Order ID is required' });
+
+    const order = await Order.findOne({
+      $or: [
+        { orderId: cleanId },
+        { orderId: new RegExp(`^${cleanId}$`, 'i') },
+        { _id: cleanId.length === 24 ? cleanId : null }
+      ]
+    });
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    const tracking = await CourierTracking.findOne({ order: order._id }).lean();
+    if (!tracking || !tracking.trackingNumber) {
+      return res.json({ success: true, available: false, events: [], currentStatus: '' });
+    }
+
+    const live = await fetchLiveCourierStatus(tracking.courierCompany, tracking.trackingNumber);
+    let autoUpdatedStatus = null;
+
+    // Auto-sync Delivered status back to Order if courier confirms delivery
+    if (live.isDelivered && order.status !== 'Delivered' && order.status !== 'Canceled') {
+      order.status = 'Delivered';
+      await order.save();
+      autoUpdatedStatus = 'Delivered';
+
+      const updatedOrder = await Order.findById(order._id).populate('products.product', 'name images price hasDiscount discountedPrice closeCOD');
+      const pusher = req.app.get('pusher');
+      if (pusher && updatedOrder) {
+        try {
+          pusher.trigger('mhq-reseller', 'order:updated', updatedOrder).catch(() => {});
+        } catch (e) {}
+      }
+    }
+
+    res.json({
+      success: true,
+      ...live,
+      autoUpdatedStatus
+    });
+  } catch (error) {
+    // Graceful fallback so frontend never breaks
+    res.json({ success: true, available: false, events: [], currentStatus: '' });
+  }
+};
+
 const remove = async (req, res) => {
   try {
     await CourierTracking.findByIdAndDelete(req.params.id);
@@ -109,4 +158,4 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, save, getByOrderId, remove };
+module.exports = { getAll, save, getByOrderId, getLiveStatus, remove };
