@@ -67,7 +67,16 @@ const getByOrderId = async (req, res) => {
 
     if (!order) return res.status(404).json({ success: false, message: 'Order not found. Please check your Order ID.' });
     
-    const tracking = await CourierTracking.findOne({ order: order._id });
+    const tracking = await CourierTracking.findOne({ order: order._id }).lean();
+    const effectiveTracking = tracking ? {
+      courierCompany: tracking.courierCompany,
+      courierName: tracking.courierName,
+      trackingNumber: tracking.trackingNumber
+    } : (order.courierCompany && order.courierTrackingNo ? {
+      courierCompany: order.courierCompany,
+      courierName: '',
+      trackingNumber: order.courierTrackingNo
+    } : null);
     
     res.json({
       success: true,
@@ -90,11 +99,7 @@ const getByOrderId = async (req, res) => {
         products: order.products,
         createdAt: order.createdAt,
       },
-      tracking: tracking ? {
-        courierCompany: tracking.courierCompany,
-        courierName: tracking.courierName,
-        trackingNumber: tracking.trackingNumber,
-      } : null
+      tracking: effectiveTracking
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -116,11 +121,14 @@ const getLiveStatus = async (req, res) => {
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
     const tracking = await CourierTracking.findOne({ order: order._id }).lean();
-    if (!tracking || !tracking.trackingNumber) {
+    const courierCompany = (tracking && tracking.courierCompany) || order.courierCompany;
+    const trackingNumber = (tracking && tracking.trackingNumber) || order.courierTrackingNo;
+
+    if (!courierCompany || !trackingNumber) {
       return res.json({ success: true, available: false, events: [], currentStatus: '' });
     }
 
-    const live = await fetchLiveCourierStatus(tracking.courierCompany, tracking.trackingNumber);
+    const live = await fetchLiveCourierStatus(courierCompany, trackingNumber);
     let autoUpdatedStatus = null;
 
     // Auto-sync Delivered status back to Order if courier confirms delivery

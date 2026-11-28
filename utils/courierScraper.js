@@ -75,20 +75,42 @@ async function scrapeTrax(cn) {
 }
 
 async function scrapePostEx(cn) {
-  const url = `https://api.postex.pk/services/integration/api/order/v1/track-order?trackingNumber=${encodeURIComponent(cn)}`;
-  const res = await fetchWithTimeout(url);
+  const url = 'https://postex.pk/api/tracking-order';
+  const res = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ trackingNumber: cn })
+  });
   if (!res.ok) return null;
   const data = await res.json().catch(() => null);
   if (!data || !data.dist) return null;
 
-  const dist = data.dist;
+  const dist = Array.isArray(data.dist) ? data.dist[0] : data.dist;
+  if (!dist) return null;
+
   const history = dist.transactionStatusHistory || [];
   const events = Array.isArray(history)
-    ? history.map(h => ({
-        status: h.transactionStatusMessage || h.status || 'Update',
-        location: h.cityName || '',
-        timestamp: h.updatedAt || ''
-      })).reverse()
+    ? history.map(h => {
+        let ts = h.modifiedDatetime || h.updatedAt || '';
+        if (ts) {
+          const parsed = new Date(ts);
+          if (!isNaN(parsed.getTime())) {
+            ts = parsed.toLocaleString('en-PK', {
+              timeZone: 'Asia/Karachi',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        }
+        return {
+          status: h.transactionStatusMessage || h.status || 'Transit Update',
+          location: h.cityName || dist.cityName || '',
+          timestamp: ts
+        };
+      }).reverse()
     : [];
 
   const currentStatus = dist.transactionStatus || (events[0] && events[0].status) || '';
@@ -191,20 +213,21 @@ async function fetchLiveCourierStatus(courierCompany, trackingNumber) {
 
   let result = null;
   try {
-    switch (company) {
-      case 'Trax':
+    switch (company.toLowerCase()) {
+      case 'trax':
         result = await scrapeTrax(cn);
         break;
-      case 'PostEx':
+      case 'postex':
         result = await scrapePostEx(cn);
         break;
-      case 'Leopard':
+      case 'leopard':
+      case 'leopards':
         result = await scrapeLeopards(cn);
         break;
-      case 'Call Courier':
-        result = await scrapeCallCourier(cn);
+      case 'call courier':
+        result = (await scrapeCallCourier(cn)) || (await scrapePostEx(cn));
         break;
-      case 'TCS':
+      case 'tcs':
         result = await scrapeTCS(cn);
         break;
       default:
